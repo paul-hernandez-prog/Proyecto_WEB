@@ -1,0 +1,88 @@
+body {
+    background: #020024;
+    background: radial-gradient(circle, rgba(2, 0, 36, 1) 0%, rgba(121, 9, 78, 1) 58%, rgba(16, 40, 97, 1) 100%);
+}
+
+.navbar-btn {
+    background: #310b56;
+    border-radius: 20px;
+    color: white;
+    padding: 7px 20px;
+    text-decoration: none;
+    
+}
+
+button:hover {
+    background: #190015;
+}
+
+.post-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0px;
+    width: 600px;
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.post-title {
+    margin: 0;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.post-content {
+    margin-top: 10px;
+}
+
+.comments-section {
+    background-color: lightgray;
+    padding: 5px;
+    border-radius: 5px
+}
+
+.main-layout {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    min-height: 100vh;
+    background: #1a1a2e;
+    color: white;
+    padding: 20px;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-menu li {
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.sidebar-menu li:hover {
+    background: #310b56;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
