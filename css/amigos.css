@@ -1,0 +1,134 @@
+    body {
+        background: #020024;
+        background: radial-gradient(circle, rgba(2, 0, 36, 1) 0%, rgba(121, 9, 78, 1) 58%, rgba(16, 40, 97, 1) 100%);
+    }
+
+    .navbar-btn {
+        background: #310b56;
+        border-radius: 20px;
+        color: white;
+        padding: 7px 20px;
+        text-decoration: none;
+        
+    }
+
+    button:hover {
+        background: #190015;
+    }
+
+    .post-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0px;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .post-title {
+        margin: 0;
+    }
+
+    .post-meta {
+        display: flex;
+        justify-content: space-between;
+        margin: 10px 0;
+        font-size: 14px;
+        color: #666;
+        align-items: center;
+    }
+
+    .post-content {
+        margin-top: 10px;
+        margin-bottom: 25px;
+    }
+
+    .comments-section {
+        margin: 20px -20px -20px -20px;
+        background-color: lightgray;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+        border-top: 1px solid #ccc;
+    }
+
+    .main-layout {
+        display: flex;
+    }
+
+    .sidebar {
+        width: 250px;
+        min-height: 100vh;
+        background: #1a1a2e;
+        color: white;
+        padding: 20px;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar-menu li {
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .sidebar-menu li:hover {
+        background: #310b56;
+    }
+
+    .content {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .comment {
+        background: white;            
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;           
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .profile-image {
+        width: 35px;
+        border-radius: 20px;
+    }
+
+    .content-image {
+        width: 100%;
+    }
+
+    .comment.hidden {
+        display: none;
+    }
+
+    .search-bar-container {
+        width: 100%;
+        max-width: 600px;
+        margin-bottom: 20px;
+    }
+
+    .search-bar {
+        width: 100%;
+        border-radius: 20px;
+        padding: 10px 15px;
+    }
+
+        .profile-image {
+        width: 35px;
+        border-radius: 20px;
+        margin-right: 10px;
+    }

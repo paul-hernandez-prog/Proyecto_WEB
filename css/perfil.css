@@ -1,0 +1,102 @@
+body {
+    background: #020024;
+    background: radial-gradient(circle, rgba(2, 0, 36, 1) 0%, rgba(121, 9, 78, 1) 58%, rgba(16, 40, 97, 1) 100%);
+}
+
+.navbar-btn {
+    background: #310b56;
+    border-radius: 20px;
+    color: white;
+    padding: 7px 20px;
+    text-decoration: none;
+    
+}
+
+button:hover {
+    background: #190015;
+}
+
+.post-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    width: 600px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.post-title {
+    margin: 0;
+}
+
+.post-actions i {
+    margin-left: 10px;
+    cursor: pointer;
+    color: #555;
+}
+
+.post-actions i:hover {
+    color: #310b56;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.post-content {
+    margin-top: 10px;
+}
+
+/* ////// */
+
+.profile-layout {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* IZQUIERDA */
+.left-column {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* DERECHA */
+.right-column {
+    flex: 1;
+    margin-top: 20px;
+}
+
+/* Ajuste para posts */
+.post-card {
+    width: 100%;
+    max-width: 600px;
+}
+
+.comments-section {
+
+    background-color: lightgray;
+    padding: 15px;
+    border-radius: 5px;
+    border-top: 1px solid #ccc;
+}
+
+.comment {
+    background: white;            
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;           
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
