@@ -1,0 +1,33 @@
+const express = require("express");
+const router = express.Router();
+
+const {
+    createUser,
+    loginUser,
+    getUsers,
+    getUserById,
+    updateUser,
+    deleteUser,
+    getProfile
+} = require("../controllers/users.controller");
+
+const {
+    protect,
+    adminOnly
+} = require("../middlewares/auth.middleware");
+
+// Registro y login públicos
+router.post("/register", createUser);
+router.post("/login", loginUser);
+
+// Ruta para validar token
+router.get("/profile", protect, getProfile);
+
+// CRUD protegido
+router.get("/", protect, adminOnly, getUsers);
+router.get("/:id", protect, getUserById);
+router.post("/", protect, adminOnly, createUser);
+router.put("/:id", protect, updateUser);
+router.delete("/:id", protect, adminOnly, deleteUser);
+
+module.exports = router;

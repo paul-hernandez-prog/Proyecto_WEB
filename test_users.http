@@ -1,0 +1,34 @@
+### Login usuario normal, copia el token de la respuesta
+POST http://localhost:3000/api/users/login
+Content-Type: application/json
+
+{
+    "correo": "cazares@gmail.com",
+    "password": "Nacho123"
+}
+
+
+### Probar token
+GET http://localhost:3000/api/users/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZjJjMjE1MGNmZGIxNmQ0ZjA1MjZjZSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc3NTY1NjczLCJleHAiOjE3Nzc1NzI4NzN9.vMIswI61mBcdNXsPWYibucGluzd23tQDrJZ5B4_oDfI
+
+
+### Obtener todos los usuarios como admin
+GET http://localhost:3000/api/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZjJjMjE1MGNmZGIxNmQ0ZjA1MjZjZSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc3NTY1NjczLCJleHAiOjE3Nzc1NzI4NzN9.vMIswI61mBcdNXsPWYibucGluzd23tQDrJZ5B4_oDfI
+
+
+### Actualizar usuario con token
+PUT http://localhost:3000/api/users/69f2c2150cfdb16d4f0526ce
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZjJjMjE1MGNmZGIxNmQ0ZjA1MjZjZSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc3NTY1NjczLCJleHAiOjE3Nzc1NzI4NzN9.vMIswI61mBcdNXsPWYibucGluzd23tQDrJZ5B4_oDfI
+
+{
+    "nombre": "Nacho",
+    "apellido": "Cazares"
+}
+
+
+### Eliminar usuario como admin
+DELETE http://localhost:3000/api/users/PEGA_AQUI_EL_ID
+Authorization: Bearer PEGA_AQUI_TU_TOKEN_ADMIN
