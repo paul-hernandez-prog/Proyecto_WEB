@@ -55,6 +55,7 @@ const createUser = async (req, res) => {
                 apellido: newUser.apellido,
                 correo: newUser.correo,
                 role: newUser.role,
+                fotoPerfil: newUser.fotoPerfil,
                 createdAt: newUser.createdAt
             }
         });
@@ -104,7 +105,8 @@ const loginUser = async (req, res) => {
                 nombre: user.nombre,
                 apellido: user.apellido,
                 correo: user.correo,
-                role: user.role
+                role: user.role,
+                fotoPerfil: user.fotoPerfil
             }
         });
 
@@ -171,7 +173,7 @@ const getUserById = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, apellido, correo, password, role } = req.body;
+        const { nombre, apellido, correo, password, role, fotoPerfil } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
@@ -203,6 +205,7 @@ const updateUser = async (req, res) => {
         if (apellido) user.apellido = apellido;
         if (role) user.role = role;
         if (password) user.password = password;
+        if (fotoPerfil !== undefined) user.fotoPerfil = fotoPerfil; 
 
         await user.save();
 
@@ -214,6 +217,7 @@ const updateUser = async (req, res) => {
                 apellido: user.apellido,
                 correo: user.correo,
                 role: user.role,
+                fotoPerfil: user.fotoPerfil,
                 updatedAt: user.updatedAt
             }
         });
@@ -231,19 +235,22 @@ const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({
-                message: "ID de usuario no válido"
-            });
-        }
+        const userToDelete = await User.findById(id);
 
-        const userDeleted = await User.findByIdAndDelete(id);
-
-        if (!userDeleted) {
+        if (!userToDelete) {
             return res.status(404).json({
                 message: "Usuario no encontrado"
             });
         }
+
+        // Si NO es admin y quiere eliminar a otro usuario, no lo dejamos
+        if (req.user.role !== "admin" && req.user.id !== id) {
+            return res.status(403).json({
+                message: "No tienes permiso para eliminar este usuario"
+            });
+        }
+
+        await User.findByIdAndDelete(id);
 
         res.json({
             message: "Usuario eliminado correctamente"

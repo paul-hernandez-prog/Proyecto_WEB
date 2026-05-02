@@ -12,6 +12,13 @@ body {
     
 }
 
+.navbar-profile-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 button:hover {
     background: #190015;
 }

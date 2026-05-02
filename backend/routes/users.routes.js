@@ -28,6 +28,6 @@ router.get("/", protect, adminOnly, getUsers);
 router.get("/:id", protect, getUserById);
 router.post("/", protect, adminOnly, createUser);
 router.put("/:id", protect, updateUser);
-router.delete("/:id", protect, adminOnly, deleteUser);
+router.delete("/:id", protect, deleteUser);
 
 module.exports = router;

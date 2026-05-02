@@ -16,8 +16,14 @@
     <nav class="navbar navbar-light bg-light px-3 d-flex justify-content-between">
 
         <div class="d-flex align-items-center gap-4">
-            <img src="https://tse1.mm.bing.net/th/id/OIP.5WSICICiTVykB7rQHR2ApAHaHa?w=2000&h=2000&rs=1&pid=ImgDetMain&o=7&rm=3" width="40px">
-    
+            
+            <img 
+              id="navbarProfileImg"
+              class="navbar-profile-img"
+              src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+              alt="Foto de perfil"
+            >
+
             <a href="perfil.html" class="text-decoration-none text-dark">Tu perfil</a>
             <a href="amigos.html" class="text-decoration-none text-dark">Amigos</a>
             <a href="foro.html" class="text-decoration-none text-dark">Foro</a>
@@ -212,6 +218,11 @@
           </div>
 
           <div class="mb-3">
+            <label class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="editApellido" placeholder="Apellido">
+          </div>
+
+          <div class="mb-3">
             <label class="form-label">Correo</label>
             <input type="email" class="form-control" id="editCorreo" placeholder="Correo">
           </div>
@@ -237,6 +248,11 @@
         <button type="submit" form="editProfileForm" class="navbar-btn">
             Guardar cambios
         </button>
+
+        <button type="button" class="btn btn-danger" id="deleteAccountBtn">
+          Eliminar mi cuenta
+        </button>
+
       </div>
 
     </div>
@@ -388,7 +404,7 @@
       </div>
 
       <div class="modal-body">
-        <form>
+        <form id="photoForm">
           <div class="mb-3">
             <label for="profileUrl" class="form-label">URL de la foto</label>
             <input 
@@ -406,7 +422,7 @@
         <button class="btn btn-secondary" data-bs-dismiss="modal">
           Cancelar
         </button>
-        <button class="btn btn-primary">
+        <button type="submit" form="photoForm" class="btn btn-primary">
           Guardar cambios
         </button>
       </div>
@@ -451,6 +467,204 @@
             });
         }
     });
+
+    const token = localStorage.getItem("token"); //recupera el token desde el navegador 
+    let user = JSON.parse(localStorage.getItem("user")); //recupera el user como objeto de js. Lo convierte a JSON
+
+    if (!token || !user) { //Si no hay token o usuario, los regresa a iniciar sesión
+        alert("Debes iniciar sesión");
+        window.location.href = "login.html";
+    }
+
+    const editProfileForm = document.getElementById("editProfileForm"); //Recupera todas las cosas del modal del gear
+    const editNombre = document.getElementById("editNombre");
+    const editApellido = document.getElementById("editApellido");
+    const editCorreo = document.getElementById("editCorreo");
+    const editPassword = document.getElementById("editPassword");
+    const editConfirm = document.getElementById("editConfirm");
+
+    const editProfileModal = document.getElementById("editProfileModal");
+
+    editProfileModal.addEventListener("show.bs.modal", () => { //Cuando abras el modal de editar perfil, se rellena 
+        editNombre.value = user.nombre || "";                   //con los campos actuales.
+        editApellido.value = user.apellido || "";
+        editCorreo.value = user.correo || "";
+
+        editPassword.value = ""; //por seguridad no puedes ver las contraseñas
+        editConfirm.value = "";
+    });
+
+    editProfileForm.addEventListener("submit", async function (e) { //funcion para cuando presiones el botón de guardar cambios
+        e.preventDefault(); //hace que no se recargue la pagina automaticamente ya que es un comportamiento del botón del modal.                                         
+
+        if (editPassword.value || editConfirm.value) { //Revisa si se quiere cambiar la contraseña
+            if (editPassword.value !== editConfirm.value) { //Revisa si son diferentes
+                alert("Las contraseñas no coinciden");
+                return;
+            }
+
+            if (editPassword.value.length < 6) {
+                alert("La contraseña debe tener mínimo 6 caracteres");
+                return;
+            }
+        }
+
+        const updatedData = { //Creas un objeto con nuevos datos
+            nombre: editNombre.value.trim(), //trim para eliminar los posibles espacios al inicio y al final
+            apellido: editApellido.value.trim(),
+            correo: editCorreo.value.trim()
+        };
+
+        if (editPassword.value.trim() !== "") { //Si si se quiso cambiar la contraseña
+            updatedData.password = editPassword.value; //le metemos al objeto la nueva contraseña
+        }
+
+        try {
+            const response = await fetch(`/api/users/${user.id}`, { //Llamada al servidor
+                method: "PUT", //queremos actualizar algo
+                headers: {
+                    "Content-Type": "application/json", //le vamos a mandar un JSON, todavia es objeto de js pero adelante lo cambiaremos
+                    "Authorization": `Bearer ${token}` //le mandamos el token 
+                },
+                body: JSON.stringify(updatedData) //lo convertimos a JSON
+            });
+
+            const data = await response.json(); //esperamos la respuesta
+
+            if (!response.ok) { //si la respuesta no salio bien
+                alert(data.message || "Error al actualizar perfil");
+                return;
+            }
+
+            localStorage.setItem("user", JSON.stringify(data.user)); //guardamos en el navegador, a nuestro usuario actualizado
+
+            alert("Perfil actualizado correctamente");
+
+            const modal = bootstrap.Modal.getInstance(editProfileModal);
+            modal.hide();
+
+            window.location.reload(); //recargamos para ver los cambios
+
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo conectar con el servidor");
+        }
+    });
+
+    //ELIMINAR USUARIO
+
+    const deleteAccountBtn = document.getElementById("deleteAccountBtn"); //Para saber si se clickeo el botón de eliminar cuenta
+
+    deleteAccountBtn.addEventListener("click", async () => { 
+        const confirmar = confirm("¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer."); //confirm muestra 2 botones aceptar / cancelar true / false
+
+        if (!confirmar) { //Si quiso cancelar
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${user.id}`, { //llamamos al servidor
+                method: "DELETE", //queremos eliminar
+                headers: {
+                    "Authorization": `Bearer ${token}`  //le damos el token
+                }
+            });
+
+            const data = await response.json(); //esperamos la respuesta
+
+            if (!response.ok) {
+                alert(data.message || "Error al eliminar la cuenta");
+                return;
+            }
+
+            alert("Tu cuenta fue eliminada correctamente");
+
+            localStorage.clear(); //borramos los datos del navegador
+
+            window.location.href = "login.html"; //regresamos al login
+
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo conectar con el servidor");
+        }
+    });
+
+
+    const DEFAULT_PROFILE_PHOTO = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+
+    //FOTO DE PERFIL
+
+    if (!token || !user) {
+        alert("Debes iniciar sesión");
+        window.location.href = "login.html";
+    }
+
+    const navbarProfileImg = document.getElementById("navbarProfileImg");
+    const updatePhotoModal = document.getElementById("updatePhotoModal");
+    const photoForm = document.getElementById("photoForm");
+    const profileUrl = document.getElementById("profileUrl");
+
+    // Mostrar la foto actual en la navbar cuando carga la página
+    navbarProfileImg.src = user.fotoPerfil || DEFAULT_PROFILE_PHOTO;
+
+    // Cuando se abre el modal, poner la foto actual en el input
+    updatePhotoModal.addEventListener("show.bs.modal", () => {
+        user = JSON.parse(localStorage.getItem("user"));
+        profileUrl.value = user.fotoPerfil || "";
+    });
+
+    // Cuando se guarda la nueva foto
+    photoForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const nuevaFoto = profileUrl.value.trim();
+
+        if (!nuevaFoto) {
+            alert("Pega una URL válida para tu foto");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${user.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    fotoPerfil: nuevaFoto
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "Error al actualizar la foto");
+                return;
+            }
+
+            const updatedUser = {
+                ...user,
+                ...data.user,
+                fotoPerfil: data.user?.fotoPerfil || nuevaFoto
+            };
+
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+
+            user = updatedUser;
+            navbarProfileImg.src = updatedUser.fotoPerfil;
+
+            alert("Foto de perfil actualizada correctamente");
+
+            const modal = bootstrap.Modal.getInstance(updatePhotoModal);
+            modal.hide();
+
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo conectar con el servidor");
+        }
+    });
+
     </script>
 
 </body>
