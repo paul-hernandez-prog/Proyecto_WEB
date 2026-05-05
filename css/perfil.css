@@ -153,4 +153,25 @@ button:hover {
     .post-card {
         max-width: 100%;
     }
+
+    /* Comentarios estilos */
+    #myCommentsContainer {
+    width: 100%;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.comment p {
+    margin: 8px 0 4px 0;
+}
 }

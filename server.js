@@ -6,6 +6,7 @@ require("dotenv").config();
 const connectDB = require("./backend/config/db");
 const usersRoutes = require("./backend/routes/users.routes");
 const postsRoutes = require("./backend/routes/posts.routes");
+const commentsRoutes = require("./backend/routes/comments.routes");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // Rutas del backend
 app.use("/api/users", usersRoutes);
 app.use("/api/posts", postsRoutes);
+app.use("/api/comments", commentsRoutes);
 
 // Archivos estáticos del frontend
 app.use("/css", express.static(path.join(__dirname, "css")));

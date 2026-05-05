@@ -65,7 +65,9 @@
 
           <div class="comments-section">
             <h5>Mis comentarios</h5>
-            <p class="text-muted">Los comentarios se agregarán después.</p>
+            <div id="myCommentsContainer">
+              <p class="text-muted">Cargando tus comentarios...</p>
+            </div>
           </div>
         
         </div>
@@ -361,6 +363,83 @@
 
     </div>
   </div>
+</div>
+
+<!-- Modal editar comentario -->
+<div class="modal fade" id="editCommentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <form id="editCommentForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar comentario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="editCommentId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Comentario</label>
+                        <textarea 
+                            id="editCommentContenido" 
+                            class="form-control" 
+                            rows="4" 
+                            required
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button 
+                        type="button" 
+                        class="btn btn-secondary" 
+                        data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn btn-primary">
+                        Guardar cambios
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal eliminar comentario -->
+<div class="modal fade" id="deleteCommentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Eliminar comentario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                ¿Seguro que quieres eliminar este comentario?
+            </div>
+
+            <div class="modal-footer">
+                <button 
+                    type="button" 
+                    class="btn btn-secondary" 
+                    data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button 
+                    id="confirmDeleteComment" 
+                    type="button" 
+                    class="btn btn-danger">
+                    Eliminar
+                </button>
+            </div>
+
+        </div>
+    </div>
 </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

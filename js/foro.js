@@ -18,6 +18,55 @@ if (!token || !user) {
 
 loadPosts();
 
+document.addEventListener("submit", async function (e) {
+    if (!e.target.classList.contains("comment-form")) {
+        return;
+    }
+
+    e.preventDefault();
+
+    const form = e.target;
+    const postId = form.dataset.postId;
+    const input = document.getElementById(`comment-input-${postId}`);
+
+    if (!input) {
+        alert("No se encontró el input del comentario");
+        return;
+    }
+
+    const contenido = input.value.trim();
+
+    if (!contenido) {
+        alert("El comentario no puede estar vacío");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/comments/post/${postId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ contenido })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Error al comentar");
+            return;
+        }
+
+        input.value = "";
+        await loadComments(postId);
+
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor");
+    }
+});
+
 if (searchInput) {
     searchInput.addEventListener("input", () => {
         renderPosts();
@@ -92,6 +141,10 @@ function renderPosts() {
     }
 
     postsContainer.innerHTML = filteredPosts.map(post => createPostCard(post)).join("");
+
+    filteredPosts.forEach(post => {
+        loadComments(post._id);
+    });
 }
 
 function createPostCard(post) {
@@ -136,19 +189,32 @@ function createPostCard(post) {
             </div>
 
             <div class="post-actions">
-                <button class="btn btn-outline-primary btn-sm" disabled>
-                    <i class="fa-solid fa-thumbs-up"></i> Like
-                </button>
+    <button class="btn btn-outline-primary btn-sm" disabled>
+        <i class="fa-solid fa-thumbs-up"></i> Like
+    </button>
+</div>
 
-                <button class="btn btn-outline-secondary btn-sm" disabled>
-                    <i class="fa-solid fa-comment"></i> Comentar
-                </button>
-            </div>
+<div class="comments-section">
+    <h5>Comentarios</h5>
 
-            <div class="comments-section">
-                <h5>Comentarios</h5>
-                <p class="text-muted">Los comentarios se agregarán después.</p>
-            </div>
+    <div id="comments-${post._id}" class="comment-list">
+        <p class="text-muted">Cargando comentarios...</p>
+    </div>
+
+    <form class="comment-form" data-post-id="${post._id}">
+    <input 
+        id="comment-input-${post._id}"
+        type="text"
+        class="form-control comment-input"
+        placeholder="Escribe un comentario..."
+        required
+    >
+
+    <button type="submit" class="btn btn-outline-secondary btn-sm mt-2">
+        <i class="fa-solid fa-comment"></i> Comentar
+    </button>
+</form>
+</div>
 
         </div>
     `;
@@ -181,4 +247,160 @@ function escapeHTML(text) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+}
+
+async function loadComments(postId) {
+    const commentsContainer = document.getElementById(`comments-${postId}`);
+
+    if (!commentsContainer) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/comments/post/${postId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            commentsContainer.innerHTML = `<p class="text-danger">Error al cargar comentarios</p>`;
+            return;
+        }
+
+        if (data.comments.length === 0) {
+            commentsContainer.innerHTML = `<p class="text-muted">Todavía no hay comentarios.</p>`;
+            return;
+        }
+
+        commentsContainer.innerHTML = data.comments.map(comment => createCommentCard(comment, postId)).join("");
+
+    } catch (error) {
+        console.error(error);
+        commentsContainer.innerHTML = `<p class="text-danger">No se pudo conectar con el servidor.</p>`;
+    }
+}
+
+function createCommentCard(comment, postId) {
+    const authorName = `${comment.autor?.nombre || ""} ${comment.autor?.apellido || ""}`.trim();
+    const createdDate = new Date(comment.createdAt).toLocaleString("es-MX");
+
+    return `
+        <div class="comment">
+            <div class="comment-header">
+                <strong>${escapeHTML(authorName || "Usuario eliminado")}</strong>
+            </div>
+
+            <p>${escapeHTML(comment.contenido)}</p>
+            <small class="text-muted">${createdDate}</small>
+        </div>
+    `;
+}
+
+async function createComment(event, postId) {
+    event.preventDefault();
+
+    const input = document.getElementById(`comment-input-${postId}`);
+    const contenido = input.value.trim();
+
+    if (!contenido) {
+        alert("El comentario no puede estar vacío");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/comments/post/${postId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ contenido })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Error al comentar");
+            return;
+        }
+
+        input.value = "";
+        await loadComments(postId);
+
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor");
+    }
+}
+
+async function editComment(commentId, postId) {
+    const nuevoContenido = prompt("Edita tu comentario:");
+
+    if (nuevoContenido === null) {
+        return;
+    }
+
+    if (nuevoContenido.trim() === "") {
+        alert("El comentario no puede estar vacío");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/comments/${commentId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                contenido: nuevoContenido.trim()
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Error al editar comentario");
+            return;
+        }
+
+        await loadComments(postId);
+
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor");
+    }
+}
+
+async function deleteComment(commentId, postId) {
+    const confirmar = confirm("¿Seguro que quieres eliminar este comentario?");
+
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/comments/${commentId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Error al eliminar comentario");
+            return;
+        }
+
+        await loadComments(postId);
+
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor");
+    }
 }

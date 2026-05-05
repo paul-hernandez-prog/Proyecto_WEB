@@ -92,39 +92,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
-
-    <script id="loadMoreComments">
-        document.querySelectorAll(".comments-section").forEach(section => {
-            const comments = section.querySelectorAll(".comment");
-            const button = section.querySelector(".show-more-btn");
-
-            let visibleCount = 2;
-
-            // Oculta todos menos los primeros 2
-            comments.forEach((comment, index) => {
-                if (index >= visibleCount) {
-                    comment.classList.add("hidden");
-                }
-            });
-
-            button.addEventListener("click", () => {
-                let shown = 0;
-
-                comments.forEach(comment => {
-                    if (comment.classList.contains("hidden") && shown < 2) {
-                        comment.classList.remove("hidden");
-                        shown++;
-                    }
-                });
-
-                const remaining = [...comments].some(c => c.classList.contains("hidden"));
-                if (!remaining) {
-                    button.style.display = "none";
-                }
-            });
-        });
-    </script>
-
     <script src="js/foro.js"></script>
 
 

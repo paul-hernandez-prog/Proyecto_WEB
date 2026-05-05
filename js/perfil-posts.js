@@ -2,12 +2,17 @@ const postToken = localStorage.getItem("token");
 const postUser = JSON.parse(localStorage.getItem("user"));
 
 const myPostsContainer = document.getElementById("myPostsContainer");
+const myCommentsContainer = document.getElementById("myCommentsContainer");
 const createPostForm = document.getElementById("createPostForm");
 const editPostForm = document.getElementById("editPostForm");
 const confirmDelete = document.getElementById("confirmDelete");
+const editCommentForm = document.getElementById("editCommentForm");
+const confirmDeleteComment = document.getElementById("confirmDeleteComment");
+
 
 let myPosts = [];
 let postIdToDelete = null;
+let commentIdToDelete = null;
 
 if (!postToken || !postUser) {
     alert("Debes iniciar sesión");
@@ -15,6 +20,7 @@ if (!postToken || !postUser) {
 }
 
 loadMyPosts();
+loadMyComments();
 
 if (createPostForm) {
     createPostForm.addEventListener("submit", async function (e) {
@@ -257,6 +263,7 @@ function openEditPost(id) {
     document.getElementById("editPostTitulo").value = post.titulo;
     document.getElementById("editPostCategoria").value = post.categoria;
     document.getElementById("editPostYoutube").value = post.youtubeUrl || "";
+    document.getElementById("editPostImagenUrl").value = post.imagenUrl || "";
 
     const modalElement = document.getElementById("editPost");
 
@@ -299,6 +306,175 @@ function escapeHTML(text) {
     if (!text) {
         return "";
     }
+
+    return text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+async function loadMyComments() {
+    if (!myCommentsContainer) {
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/comments/me/my-comments", {
+            headers: {
+                "Authorization": `Bearer ${postToken}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            myCommentsContainer.innerHTML = `<p class="text-danger">${data.message || "Error al cargar tus comentarios"}</p>`;
+            return;
+        }
+
+        renderMyComments(data.comments);
+
+    } catch (error) {
+        console.error(error);
+        myCommentsContainer.innerHTML = `<p class="text-danger">No se pudo conectar con el servidor.</p>`;
+    }
+}
+
+function renderMyComments(comments) {
+    if (!comments || comments.length === 0) {
+        myCommentsContainer.innerHTML = `<p class="text-muted">Todavía no has comentado publicaciones.</p>`;
+        return;
+    }
+
+    myCommentsContainer.innerHTML = comments.map(comment => {
+        const postTitle = comment.post ? comment.post.titulo : "Publicación eliminada";
+        const category = comment.post ? comment.post.categoria : "";
+        const createdDate = new Date(comment.createdAt).toLocaleString("es-MX");
+
+        return `
+            <div class="comment">
+                <div class="comment-header">
+                    <strong>En: ${escapeHTML(postTitle)}</strong>
+
+                    <div class="comment-actions">
+                        <button 
+                            class="btn btn-outline-secondary btn-sm"
+                            onclick="openEditCommentModal('${comment._id}', '${escapeForAttribute(comment.contenido)}')">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+
+                        <button 
+                            class="btn btn-outline-danger btn-sm"
+                            onclick="openDeleteCommentModal('${comment._id}')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                ${category ? `<span class="badge ${getCategoryBadge(category)}">${escapeHTML(category)}</span>` : ""}
+
+                <p class="mt-2">${escapeHTML(comment.contenido)}</p>
+                <small class="text-muted">${createdDate}</small>
+            </div>
+        `;
+    }).join("");
+}
+
+if (editCommentForm) {
+    editCommentForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const commentId = document.getElementById("editCommentId").value;
+        const contenido = document.getElementById("editCommentContenido").value.trim();
+
+        if (!contenido) {
+            alert("El comentario no puede estar vacío");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/comments/${commentId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${postToken}`
+                },
+                body: JSON.stringify({ contenido })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "Error al editar comentario");
+                return;
+            }
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById("editCommentModal"));
+            if (modal) modal.hide();
+
+            await loadMyComments();
+
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo conectar con el servidor");
+        }
+    });
+}
+
+if (confirmDeleteComment) {
+    confirmDeleteComment.addEventListener("click", async function () {
+        if (!commentIdToDelete) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/comments/${commentIdToDelete}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${postToken}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "Error al eliminar comentario");
+                return;
+            }
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById("deleteCommentModal"));
+            if (modal) modal.hide();
+
+            commentIdToDelete = null;
+
+            await loadMyComments();
+
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo conectar con el servidor");
+        }
+    });
+}
+
+function openEditCommentModal(commentId, contenido) {
+    document.getElementById("editCommentId").value = commentId;
+    document.getElementById("editCommentContenido").value = contenido;
+
+    const modal = new bootstrap.Modal(document.getElementById("editCommentModal"));
+    modal.show();
+}
+
+function openDeleteCommentModal(commentId) {
+    commentIdToDelete = commentId;
+
+    const modal = new bootstrap.Modal(document.getElementById("deleteCommentModal"));
+    modal.show();
+}
+
+function escapeForAttribute(text) {
+    if (!text) return "";
 
     return text
         .replaceAll("&", "&amp;")

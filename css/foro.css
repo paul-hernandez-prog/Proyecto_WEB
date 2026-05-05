@@ -226,4 +226,30 @@ button:hover {
 .sidebar-menu li.active:hover {
     background: #310b56;
 }
+
+/* Estilos de comentarios */
+
+.comment-form {
+    margin-top: 12px;
+}
+
+.comment-input {
+    border-radius: 12px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.comment p {
+    margin: 8px 0 4px 0;
+}
 }
