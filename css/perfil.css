@@ -9,7 +9,7 @@ body {
     color: white;
     padding: 7px 20px;
     text-decoration: none;
-    
+    border: none;
 }
 
 .navbar-profile-img {
@@ -23,12 +23,42 @@ button:hover {
     background: #190015;
 }
 
+/* Layout del perfil */
+.profile-layout {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Columna de publicaciones */
+.left-column {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Contenedor dinámico de mis publicaciones */
+#myPostsContainer {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Columna derecha */
+.right-column {
+    flex: 1;
+    margin-top: 20px;
+}
+
+/* Publicaciones mismo estilo que amigos */
 .post-card {
     background: white;
     border-radius: 12px;
     padding: 20px;
     margin: 20px 0;
-    width: 600px;
+    width: 100%;
+    max-width: 600px;
+    min-height: 260px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
@@ -42,8 +72,13 @@ button:hover {
     margin: 0;
 }
 
+.post-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 .post-actions i {
-    margin-left: 10px;
     cursor: pointer;
     color: #555;
 }
@@ -58,52 +93,64 @@ button:hover {
     margin: 10px 0;
     font-size: 14px;
     color: #666;
+    align-items: center;
+    gap: 10px;
 }
 
 .post-content {
     margin-top: 10px;
+    margin-bottom: 25px;
 }
 
-/* ////// */
-
-.profile-layout {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-}
-
-/* IZQUIERDA */
-.left-column {
-    flex: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* DERECHA */
-.right-column {
-    flex: 1;
-    margin-top: 20px;
-}
-
-/* Ajuste para posts */
-.post-card {
+/* Imagen por si después usas imagenUrl */
+.content-image {
     width: 100%;
-    max-width: 600px;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
 }
 
+/* Comentarios placeholder */
 .comments-section {
-
     background-color: lightgray;
     padding: 15px;
     border-radius: 5px;
     border-top: 1px solid #ccc;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
 .comment {
-    background: white;            
+    background: white;
     padding: 10px;
     border-radius: 8px;
-    margin-bottom: 10px;           
+    margin-bottom: 10px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* Mensajes vacíos */
+#myPostsContainer > p,
+.empty-message {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .profile-layout {
+        flex-direction: column;
+    }
+
+    .left-column,
+    .right-column {
+        width: 100%;
+    }
+
+    #myPostsContainer,
+    .post-card {
+        max-width: 100%;
+    }
 }

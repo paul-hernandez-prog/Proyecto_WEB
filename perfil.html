@@ -55,118 +55,17 @@
 
     <div class="left-column">
 
-    <div class="post-card">
-
-    <div class="post-header">
-        <h4 class="post-title">¿Cómo empezar en ciberseguridad?</h4>
-
-        <div class="post-actions">
-            <i class="fa-solid fa-pen edit-icon text-primary"
-                data-bs-toggle="modal" 
-                data-bs-target="#editPost">
-            </i>
-            <i 
-            class="fa-solid fa-trash delete-icon text-danger"
-            data-bs-toggle="modal"
-            data-bs-target="#deletePostModal">
-            </i>
-        </div>
-    </div>
-
-    <div class="post-meta">
-        <span><strong>Autor:</strong> Paul Hernández</span>
-        <span class="badge bg-primary">Ciberseguridad</span>
-    </div>
-
-    <p class="post-content">
-        Estoy interesado en aprender ciberseguridad pero no sé por dónde empezar. 
-        ¿Qué cursos o rutas recomiendan para alguien que va iniciando?
-    </p>
-
-</div>
-
-    <div class="post-card">
-
-    <div class="post-header">
-        <h4 class="post-title">¿Cuál es la mejor IA para programar?</h4>
-
-        <div class="post-actions">
-            <i class="fa-solid fa-pen edit-icon text-primary"
-                data-bs-toggle="modal" 
-                data-bs-target="#editPost">
-            </i>
-            <i 
-                class="fa-solid fa-trash delete-icon text-danger"
-                data-bs-toggle="modal"
-                data-bs-target="#deletePostModal">
-            </i>
-        </div>
-    </div>
-
-    <div class="post-meta">
-        <span><strong>Autor:</strong> Paul Hernández</span>
-        <span class="badge bg-danger">Software</span>
-    </div>
-
-    <p class="post-content">
-        Necesito ser capaz de mejorar mis habilidades programando de forma eficiente, ¿Cuál es la mejor IA
-        que recomienden para estudiar desarrollo de software?.
-    </p>
-
-</div>
-
-    <div class="post-card">
-
-      <div class="post-header">
-          <h4 class="post-title">¿Qué ventajas tiene usar Linux?</h4>
-
-          <div class="post-actions">
-              <i class="fa-solid fa-pen edit-icon text-primary"
-                  data-bs-toggle="modal" 
-                  data-bs-target="#editPost">
-              </i>
-              <i 
-                  class="fa-solid fa-trash delete-icon text-danger"
-                  data-bs-toggle="modal"
-                  data-bs-target="#deletePostModal">
-              </i>
-          </div>
+      <div id="myPostsContainer">
+        <p class="text-muted">Cargando tus publicaciones...</p>
       </div>
-
-      <div class="post-meta">
-          <span><strong>Autor:</strong> Paul Hernández</span>
-          <span class="badge bg-warning">Sistemas</span>
-      </div>
-
-      <p class="post-content">
-          Recientemente observe que usar Linux tiene sus ventajas, quisiera saber si 
-          alguien de sistemas me pudiera orientar.
-      </p>
-
-    </div>
 
     </div>
 
         <div class="right-column">
 
           <div class="comments-section">
-              <h5>Mis comentarios</h5>
-
-            <div class="comment">
-                <strong>Paul Hernández:</strong>
-                <p>Yo creo que sí va a cambiar muchos trabajos, pero también va a crear nuevos.</p>
-            </div>
-
-            <div class="comment">
-                <strong>Paul Hernández:</strong>
-                <p>No creo que nos deje sin trabajo, más bien nos va a obligar a adaptarnos.</p>
-            </div>
-
-            <div class="comment">
-                <strong>Paul Hernández:</strong>
-                <p>No creo que nos deje sin trabajo, más bien nos va a obligar a adaptarnos.</p>
-            </div>
-
+            <h5>Mis comentarios</h5>
+            <p class="text-muted">Los comentarios se agregarán después.</p>
           </div>
         
         </div>
@@ -269,7 +168,7 @@
       </div>
 
       <div class="modal-body">
-        <form id="postFormEdit">
+        <form id="createPostForm">
 
           <div class="mb-3">
             <label class="form-label">Título</label>
@@ -280,9 +179,10 @@
             <label class="form-label">Categoría</label>
             <select class="form-select" id="postCategoria" required>
               <option value="">Selecciona una categoría</option>
-              <option value="software">Software</option>
-              <option value="sistemas">Sistemas</option>
-              <option value="ciberseguridad">Ciberseguridad</option>
+              <option value="Software">Software</option>
+              <option value="Sistemas">Sistemas</option>
+              <option value="Ciberseguridad">Ciberseguridad</option>
+              <option value="IA">IA</option>
             </select>
           </div>
 
@@ -291,7 +191,7 @@
             <div id="editor" style="height: 150px;"></div>
           </div>
 
-            <div class="mb-3">
+          <div class="mb-3">
             <label class="form-label">Link de YouTube</label>
             <input 
                 type="url" 
@@ -299,7 +199,16 @@
                 id="postYoutube" 
                 placeholder="https://www.youtube.com/watch?v=..."
             >
-            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Link de imagen o GIF</label>
+            <input 
+            type="url" 
+            class="form-control" 
+            id="postImagenUrl" 
+            placeholder="https://ejemplo.com/imagen.gif">
+          </div>
           
         </form>
       </div>
@@ -309,7 +218,7 @@
             Cancelar
         </button>
 
-        <button type="submit" form="postForm" class="btn btn-primary">
+        <button type="submit" form="createPostForm" class="btn btn-primary">
             Publicar
         </button>
       </div>
@@ -328,20 +237,23 @@
       </div>
 
       <div class="modal-body">
-        <form id="postForm">
+        <form id="editPostForm">
+
+          <input type="hidden" id="editPostId">
 
           <div class="mb-3">
             <label class="form-label">Título</label>
-            <input type="text" class="form-control" id="postTitulo" required>
+            <input type="text" class="form-control" id="editPostTitulo" required>
           </div>
 
           <div class="mb-3">
             <label class="form-label">Categoría</label>
-            <select class="form-select" id="postCategoria" required>
+            <select class="form-select" id="editPostCategoria" required>
               <option value="">Selecciona una categoría</option>
-              <option value="software">Software</option>
-              <option value="sistemas">Sistemas</option>
-              <option value="ciberseguridad">Ciberseguridad</option>
+              <option value="Software">Software</option>
+              <option value="Sistemas">Sistemas</option>
+              <option value="Ciberseguridad">Ciberseguridad</option>
+              <option value="IA">IA</option>
             </select>
           </div>
 
@@ -349,6 +261,26 @@
             <label class="form-label">Descripción</label>
             <div id="editor-edit" style="height: 150px;"></div>
           </div>
+
+          <div class="mb-3">
+            <label class="form-label">Link de YouTube</label>
+            <input 
+                type="url" 
+                class="form-control" 
+                id="editPostYoutube" 
+                placeholder="https://www.youtube.com/watch?v=..."
+            >
+          </div>
+
+          <div class="mb-3">
+    <label class="form-label">Link de imagen o GIF</label>
+    <input 
+        type="url" 
+        class="form-control" 
+        id="editPostImagenUrl" 
+        placeholder="https://ejemplo.com/imagen.gif"
+    >
+</div>
 
         </form>
       </div>
@@ -358,8 +290,8 @@
             Cancelar
         </button>
 
-        <button type="submit" form="postForm" class="btn btn-primary">
-            Publicar
+        <button type="submit" form="editPostForm" class="btn btn-primary">
+            Guardar cambios
         </button>
       </div>
 
@@ -666,6 +598,8 @@
     });
 
     </script>
+
+    <script src="js/perfil-posts.js"></script>
 
 </body>
 
