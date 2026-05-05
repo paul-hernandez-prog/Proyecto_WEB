@@ -7,6 +7,8 @@ const connectDB = require("./backend/config/db");
 const usersRoutes = require("./backend/routes/users.routes");
 const postsRoutes = require("./backend/routes/posts.routes");
 const commentsRoutes = require("./backend/routes/comments.routes");
+const categoriesRoutes = require("./backend/routes/categories.routes");
+const reportsRoutes = require("./backend/routes/reports.routes");
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use(express.json());
 app.use("/api/users", usersRoutes);
 app.use("/api/posts", postsRoutes);
 app.use("/api/comments", commentsRoutes);
+app.use("/api/categories", categoriesRoutes);
+app.use("/api/reports", reportsRoutes);
 
 // Archivos estáticos del frontend
 app.use("/css", express.static(path.join(__dirname, "css")));

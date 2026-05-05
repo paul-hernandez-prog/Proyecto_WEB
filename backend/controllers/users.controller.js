@@ -56,6 +56,7 @@ const createUser = async (req, res) => {
                 correo: newUser.correo,
                 role: newUser.role,
                 fotoPerfil: newUser.fotoPerfil,
+                following: newUser.following || [],
                 createdAt: newUser.createdAt
             }
         });
@@ -106,7 +107,8 @@ const loginUser = async (req, res) => {
                 apellido: user.apellido,
                 correo: user.correo,
                 role: user.role,
-                fotoPerfil: user.fotoPerfil
+                fotoPerfil: user.fotoPerfil,
+                following: user.following || []
             }
         });
 
@@ -265,10 +267,109 @@ const deleteUser = async (req, res) => {
 };
 
 const getProfile = async (req, res) => {
-    res.json({
-        message: "Token válido",
-        user: req.user
-    });
+    try {
+        const user = await User.findById(req.user.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                message: "Usuario no encontrado"
+            });
+        }
+
+        res.json({
+            message: "Perfil obtenido correctamente",
+            user: {
+                id: user._id,
+                nombre: user.nombre,
+                apellido: user.apellido,
+                correo: user.correo,
+                role: user.role,
+                fotoPerfil: user.fotoPerfil,
+                following: user.following || []
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error al obtener perfil",
+            error: error.message
+        });
+    }
+};
+
+const followUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                message: "ID de usuario no válido"
+            });
+        }
+
+        if (id === req.user.id) {
+            return res.status(400).json({
+                message: "No puedes seguirte a ti mismo"
+            });
+        }
+
+        const userToFollow = await User.findById(id);
+
+        if (!userToFollow) {
+            return res.status(404).json({
+                message: "Usuario no encontrado"
+            });
+        }
+
+        const currentUser = await User.findById(req.user.id);
+
+        const alreadyFollowing = currentUser.following.some(
+            userId => userId.toString() === id
+        );
+
+        if (alreadyFollowing) {
+            return res.status(400).json({
+                message: "Ya sigues a este usuario"
+            });
+        }
+
+        currentUser.following.push(id);
+        await currentUser.save();
+
+        res.json({
+            message: "Ahora sigues a este usuario"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error al seguir usuario",
+            error: error.message
+        });
+    }
+};
+
+const unfollowUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const currentUser = await User.findById(req.user.id);
+
+        currentUser.following = currentUser.following.filter(
+            userId => userId.toString() !== id
+        );
+
+        await currentUser.save();
+
+        res.json({
+            message: "Dejaste de seguir a este usuario"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error al dejar de seguir usuario",
+            error: error.message
+        });
+    }
 };
 
 module.exports = {
@@ -278,5 +379,7 @@ module.exports = {
     getUserById,
     updateUser,
     deleteUser,
-    getProfile
+    getProfile,
+    followUser,
+    unfollowUser
 };

@@ -13,14 +13,20 @@ const confirmDeleteComment = document.getElementById("confirmDeleteComment");
 let myPosts = [];
 let postIdToDelete = null;
 let commentIdToDelete = null;
+let allCategories = [];
 
 if (!postToken || !postUser) {
     alert("Debes iniciar sesión");
     window.location.href = "login.html";
 }
 
-loadMyPosts();
-loadMyComments();
+initPerfil();
+
+async function initPerfil() {
+    await loadCategories();
+    await loadMyPosts();
+    await loadMyComments();
+}
 
 if (createPostForm) {
     createPostForm.addEventListener("submit", async function (e) {
@@ -177,6 +183,8 @@ if (confirmDelete) {
 
 async function loadMyPosts() {
     try {
+        myPostsContainer.innerHTML = createLoader("Cargando tus publicaciones...");
+
         const response = await fetch("/api/posts/me/my-posts", {
             headers: {
                 "Authorization": `Bearer ${postToken}`
@@ -240,11 +248,7 @@ function renderMyPosts() {
     >
 ` : ""}
 
-                ${post.youtubeUrl ? `
-                    <a href="${escapeHTML(post.youtubeUrl)}" target="_blank" class="btn btn-outline-danger btn-sm">
-                        <i class="fa-brands fa-youtube"></i> Ver video
-                    </a>
-                ` : ""}
+            ${post.youtubeUrl ? createYouTubeIframe(post.youtubeUrl) : ""}
 
             </div>
         `;
@@ -294,12 +298,22 @@ function getAuthorName(post) {
     return `${post.autor.nombre || ""} ${post.autor.apellido || ""}`.trim();
 }
 
-function getCategoryBadge(category) {
-    if (category === "Software") return "bg-danger";
-    if (category === "Sistemas") return "bg-warning text-dark";
-    if (category === "Ciberseguridad") return "bg-primary";
-    if (category === "IA") return "bg-success";
-    return "bg-secondary";
+function getCategoryBadge(categoryName) {
+    if (!allCategories) {
+        return "bg-secondary";
+    }
+
+    const category = allCategories.find(c => c.nombre === categoryName);
+
+    if (!category) {
+        return "bg-secondary";
+    }
+
+    if (category.color === "warning" || category.color === "info") {
+        return `bg-${category.color} text-dark`;
+    }
+
+    return `bg-${category.color}`;
 }
 
 function escapeHTML(text) {
@@ -321,6 +335,8 @@ async function loadMyComments() {
     }
 
     try {
+        myCommentsContainer.innerHTML = createLoader("Cargando tus comentarios...");
+
         const response = await fetch("/api/comments/me/my-comments", {
             headers: {
                 "Authorization": `Bearer ${postToken}`
@@ -482,4 +498,102 @@ function escapeForAttribute(text) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+}
+
+async function loadCategories() {
+    try {
+        const response = await fetch("/api/categories", {
+            headers: {
+                "Authorization": `Bearer ${postToken}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log(data.message || "Error al cargar categorías");
+            return;
+        }
+
+        allCategories = data.categories || [];
+
+        renderCategoryOptions();
+
+    } catch (error) {
+        console.error("Error al cargar categorías:", error);
+    }
+}
+
+function renderCategoryOptions() {
+    const postCategoriaSelect = document.getElementById("postCategoria");
+    const editPostCategoriaSelect = document.getElementById("editPostCategoria");
+
+    const options = `
+        <option value="">Selecciona una categoría</option>
+        ${allCategories.map(category => `
+            <option value="${escapeHTML(category.nombre)}">
+                ${escapeHTML(category.nombre)}
+            </option>
+        `).join("")}
+    `;
+
+    if (postCategoriaSelect) {
+        postCategoriaSelect.innerHTML = options;
+    }
+
+    if (editPostCategoriaSelect) {
+        editPostCategoriaSelect.innerHTML = options;
+    }
+}
+
+function getYouTubeVideoId(url) {
+    if (!url) {
+        return null;
+    }
+
+    try {
+        const parsedUrl = new URL(url);
+
+        if (parsedUrl.hostname.includes("youtu.be")) {
+            return parsedUrl.pathname.slice(1);
+        }
+
+        if (parsedUrl.hostname.includes("youtube.com")) {
+            if (parsedUrl.pathname === "/watch") {
+                return parsedUrl.searchParams.get("v");
+            }
+
+            if (parsedUrl.pathname.startsWith("/shorts/")) {
+                return parsedUrl.pathname.split("/shorts/")[1];
+            }
+
+            if (parsedUrl.pathname.startsWith("/embed/")) {
+                return parsedUrl.pathname.split("/embed/")[1];
+            }
+        }
+
+        return null;
+
+    } catch (error) {
+        return null;
+    }
+}
+
+function createYouTubeIframe(url) {
+    const videoId = getYouTubeVideoId(url);
+
+    if (!videoId) {
+        return "";
+    }
+
+    return `
+        <div class="youtube-container">
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}"
+                title="Video de YouTube"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+            </iframe>
+        </div>
+    `;
 }

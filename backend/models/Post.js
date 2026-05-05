@@ -19,9 +19,8 @@ const postSchema = new mongoose.Schema(
         categoria: {
             type: String,
             required: [true, "La categoría es obligatoria"],
-            enum: ["Software", "Sistemas", "Ciberseguridad", "IA"]
+            trim: true
         },
-
         imagenUrl: {
             type: String,
             default: "",
@@ -33,11 +32,24 @@ const postSchema = new mongoose.Schema(
             default: "",
             trim: true
         },
-
+        youtubeUrl: {
+            type: String,
+            trim: true,
+            default: ""
+        },
         autor: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+        likes: {
+            type: [
+                {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "User"
+                }
+            ],
+            default: []
         }
     },
     {

@@ -8,7 +8,9 @@ const {
     getUserById,
     updateUser,
     deleteUser,
-    getProfile
+    getProfile,
+    followUser,
+    unfollowUser
 } = require("../controllers/users.controller");
 
 const {
@@ -29,5 +31,8 @@ router.get("/:id", protect, getUserById);
 router.post("/", protect, adminOnly, createUser);
 router.put("/:id", protect, updateUser);
 router.delete("/:id", protect, deleteUser);
+
+router.put("/:id/follow", protect, followUser);
+router.put("/:id/unfollow", protect, unfollowUser);
 
 module.exports = router;

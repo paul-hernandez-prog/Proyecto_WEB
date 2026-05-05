@@ -1,11 +1,15 @@
 const token = localStorage.getItem("token");
-const user = JSON.parse(localStorage.getItem("user"));
+let user = JSON.parse(localStorage.getItem("user"));
 
-const API_POSTS = "/api/posts";
+const API_POSTS = window.POSTS_API || "/api/posts";
 const DEFAULT_PROFILE_PHOTO = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
 let selectedCategory = "Todas";
 let allPosts = [];
+
+let allCategories = [];
+const categorySidebar = document.getElementById("categorySidebar");
+const categorySelect = document.getElementById("categoria");
 
 const postsContainer = document.getElementById("postsContainer");
 const searchInput = document.getElementById("searchInput");
@@ -16,7 +20,36 @@ if (!token || !user) {
     window.location.href = "login.html";
 }
 
-loadPosts();
+async function initPage() {
+    await loadProfile();
+    await loadCategories();
+    await loadPosts();
+}
+
+initPage();
+
+async function loadProfile() {
+    try {
+        const response = await fetch("/api/users/profile", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log("No se pudo cargar el perfil actualizado");
+            return;
+        }
+
+        user = data.user;
+        localStorage.setItem("user", JSON.stringify(user));
+
+    } catch (error) {
+        console.error("Error al cargar perfil:", error);
+    }
+}
 
 document.addEventListener("submit", async function (e) {
     if (!e.target.classList.contains("comment-form")) {
@@ -73,16 +106,6 @@ if (searchInput) {
     });
 }
 
-document.querySelectorAll(".category-filter").forEach(item => {
-    item.addEventListener("click", () => {
-        document.querySelectorAll(".category-filter").forEach(i => i.classList.remove("active"));
-        item.classList.add("active");
-
-        selectedCategory = item.dataset.category;
-        renderPosts();
-    });
-});
-
 if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
         localStorage.clear();
@@ -90,8 +113,73 @@ if (logoutBtn) {
     });
 }
 
+async function loadCategories() {
+    try {
+        const response = await fetch("/api/categories", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log(data.message || "Error al cargar categorías");
+            return;
+        }
+
+        allCategories = data.categories || [];
+        renderCategorySidebar();
+
+    } catch (error) {
+        console.error("Error al cargar categorías:", error);
+    }
+}
+
+function renderCategorySidebar() {
+    if (categorySidebar) {
+        categorySidebar.innerHTML = `
+            <li class="category-filter active" data-category="Todas">Todas</li>
+        `;
+
+        allCategories.forEach(category => {
+            categorySidebar.innerHTML += `
+                <li class="category-filter" data-category="${escapeHTML(category.nombre)}">
+                    ${escapeHTML(category.nombre)}
+                </li>
+            `;
+        });
+
+        document.querySelectorAll(".category-filter").forEach(item => {
+            item.addEventListener("click", () => {
+                document.querySelectorAll(".category-filter").forEach(i => i.classList.remove("active"));
+                item.classList.add("active");
+
+                selectedCategory = item.dataset.category;
+                renderPosts();
+            });
+        });
+    }
+
+    if (categorySelect) {
+        categorySelect.innerHTML = `
+            <option value="">Selecciona una categoría</option>
+        `;
+
+        allCategories.forEach(category => {
+            categorySelect.innerHTML += `
+                <option value="${escapeHTML(category.nombre)}">
+                    ${escapeHTML(category.nombre)}
+                </option>
+            `;
+        });
+    }
+}
+
 async function loadPosts() {
     try {
+        postsContainer.innerHTML = createLoader("Cargando publicaciones...");
+
         const response = await fetch(API_POSTS, {
             headers: {
                 "Authorization": `Bearer ${token}`
@@ -101,7 +189,11 @@ async function loadPosts() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.message || "Error al cargar publicaciones");
+            postsContainer.innerHTML = `
+                <p class="empty-message">
+                    ${data.message || "Error al cargar publicaciones"}
+                </p>
+            `;
 
             if (response.status === 401) {
                 localStorage.clear();
@@ -147,10 +239,33 @@ function renderPosts() {
     });
 }
 
+function isFollowingUser(authorId) {
+    if (!user.following) {
+        return false;
+    }
+
+    return user.following.some(id => id.toString() === authorId.toString());
+}
+
+function isPostLiked(post) {
+    if (!post.likes) {
+        return false;
+    }
+
+    return post.likes.some(id => id.toString() === user.id.toString());
+}
+
 function createPostCard(post) {
     const authorName = getAuthorName(post);
     const authorPhoto = post.autor?.fotoPerfil || DEFAULT_PROFILE_PHOTO;
     const createdDate = new Date(post.createdAt).toLocaleString("es-MX");
+
+    const authorId = post.autor?._id;
+    const isFollowing = authorId ? isFollowingUser(authorId) : false;
+
+    const isLiked = isPostLiked(post);
+    const likesCount = post.likes ? post.likes.length : 0;
+
 
     return `
         <div class="post-card">
@@ -179,19 +294,36 @@ function createPostCard(post) {
                     <img class="content-image" src="${escapeHTML(post.imagenUrl)}" alt="Imagen de publicación">
                 ` : ""}
 
-                ${post.youtubeUrl ? `
-                    <div class="mt-2">
-                        <a href="${escapeHTML(post.youtubeUrl)}" target="_blank" class="btn btn-outline-danger btn-sm">
-                            <i class="fa-brands fa-youtube"></i> Ver video
-                        </a>
-                    </div>
-                ` : ""}
+                ${post.youtubeUrl ? createYouTubeIframe(post.youtubeUrl) : ""}
             </div>
 
             <div class="post-actions">
-    <button class="btn btn-outline-primary btn-sm" disabled>
-        <i class="fa-solid fa-thumbs-up"></i> Like
-    </button>
+        <button 
+            class="btn ${isLiked ? "btn-primary" : "btn-outline-primary"} btn-sm"
+            onclick="toggleLikePost('${post._id}')"
+        >
+            <i class="fa-solid fa-thumbs-up"></i>
+            ${isLiked ? "Liked" : "Like"} ${likesCount}
+        </button>
+
+        <button 
+            type="button"
+            class="btn btn-outline-warning btn-sm"
+            onclick="openReportModal('post', '${post._id}')"
+        >
+            <i class="fa-solid fa-flag"></i> Reportar
+        </button>
+
+    ${authorId && authorId !== user.id ? `
+        <button 
+            class="btn ${isFollowing ? "btn-success" : "btn-outline-success"} btn-sm"
+            onclick="toggleFollowUser('${authorId}')"
+        >
+            <i class="fa-solid ${isFollowing ? "fa-user-check" : "fa-user-plus"}"></i>
+            ${isFollowing ? "Siguiendo" : "Seguir"}
+        </button>
+    ` : ""}
+
 </div>
 
 <div class="comments-section">
@@ -299,92 +431,16 @@ function createCommentCard(comment, postId) {
     `;
 }
 
-async function createComment(event, postId) {
-    event.preventDefault();
-
-    const input = document.getElementById(`comment-input-${postId}`);
-    const contenido = input.value.trim();
-
-    if (!contenido) {
-        alert("El comentario no puede estar vacío");
-        return;
-    }
-
+async function toggleFollowUser(userId) {
     try {
-        const response = await fetch(`/api/comments/post/${postId}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ contenido })
-        });
+        const alreadyFollowing = isFollowingUser(userId);
 
-        const data = await response.json();
+        const url = alreadyFollowing
+            ? `/api/users/${userId}/unfollow`
+            : `/api/users/${userId}/follow`;
 
-        if (!response.ok) {
-            alert(data.message || "Error al comentar");
-            return;
-        }
-
-        input.value = "";
-        await loadComments(postId);
-
-    } catch (error) {
-        console.error(error);
-        alert("No se pudo conectar con el servidor");
-    }
-}
-
-async function editComment(commentId, postId) {
-    const nuevoContenido = prompt("Edita tu comentario:");
-
-    if (nuevoContenido === null) {
-        return;
-    }
-
-    if (nuevoContenido.trim() === "") {
-        alert("El comentario no puede estar vacío");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/comments/${commentId}`, {
+        const response = await fetch(url, {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                contenido: nuevoContenido.trim()
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            alert(data.message || "Error al editar comentario");
-            return;
-        }
-
-        await loadComments(postId);
-
-    } catch (error) {
-        console.error(error);
-        alert("No se pudo conectar con el servidor");
-    }
-}
-
-async function deleteComment(commentId, postId) {
-    const confirmar = confirm("¿Seguro que quieres eliminar este comentario?");
-
-    if (!confirmar) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/comments/${commentId}`, {
-            method: "DELETE",
             headers: {
                 "Authorization": `Bearer ${token}`
             }
@@ -393,14 +449,205 @@ async function deleteComment(commentId, postId) {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.message || "Error al eliminar comentario");
+            alert(data.message || "Error al actualizar seguimiento");
             return;
         }
 
-        await loadComments(postId);
+        if (!user.following) {
+            user.following = [];
+        }
+
+        if (alreadyFollowing) {
+            user.following = user.following.filter(id => id.toString() !== userId.toString());
+        } else {
+            user.following.push(userId);
+        }
+
+        localStorage.setItem("user", JSON.stringify(user));
+
+        if (API_POSTS.includes("/following/feed")) {
+            await loadPosts();
+        } else {
+            renderPosts();
+        }
 
     } catch (error) {
         console.error(error);
         alert("No se pudo conectar con el servidor");
     }
 }
+
+async function toggleLikePost(postId) {
+    try {
+        const response = await fetch(`/api/posts/${postId}/like`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Error al actualizar like");
+            return;
+        }
+
+        allPosts = allPosts.map(post => {
+            if (post._id === postId) {
+                return data.post;
+            }
+
+            return post;
+        });
+
+        renderPosts();
+
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor");
+    }
+}
+
+function getYouTubeVideoId(url) {
+    if (!url) {
+        return null;
+    }
+
+    try {
+        const parsedUrl = new URL(url);
+
+        if (parsedUrl.hostname.includes("youtu.be")) {
+            return parsedUrl.pathname.slice(1);
+        }
+
+        if (parsedUrl.hostname.includes("youtube.com")) {
+            if (parsedUrl.pathname === "/watch") {
+                return parsedUrl.searchParams.get("v");
+            }
+
+            if (parsedUrl.pathname.startsWith("/shorts/")) {
+                return parsedUrl.pathname.split("/shorts/")[1];
+            }
+
+            if (parsedUrl.pathname.startsWith("/embed/")) {
+                return parsedUrl.pathname.split("/embed/")[1];
+            }
+        }
+
+        return null;
+
+    } catch (error) {
+        return null;
+    }
+}
+
+function createYouTubeIframe(url) {
+    const videoId = getYouTubeVideoId(url);
+
+    if (!videoId) {
+        return "";
+    }
+
+    return `
+        <div class="youtube-container">
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}"
+                title="Video de YouTube"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+            </iframe>
+        </div>
+    `;
+}
+
+const reportForm = document.getElementById("reportForm");
+
+function openReportModal(tipo, targetId) {
+    const reportTipo = document.getElementById("reportTipo");
+    const reportPostId = document.getElementById("reportPostId");
+    const reportCommentId = document.getElementById("reportCommentId");
+    const reportMotivo = document.getElementById("reportMotivo");
+    const reportDescripcion = document.getElementById("reportDescripcion");
+
+    if (!reportTipo || !reportPostId || !reportCommentId) {
+        alert("No se encontró el formulario de reporte");
+        return;
+    }
+
+    reportTipo.value = tipo;
+    reportMotivo.value = "";
+    reportDescripcion.value = "";
+
+    if (tipo === "post") {
+        reportPostId.value = targetId;
+        reportCommentId.value = "";
+    }
+
+    if (tipo === "comment") {
+        reportPostId.value = "";
+        reportCommentId.value = targetId;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById("reportModal"));
+    modal.show();
+}
+
+if (reportForm && reportForm.dataset.listenerAdded !== "true") {
+    reportForm.dataset.listenerAdded = "true";
+
+    reportForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const tipo = document.getElementById("reportTipo").value;
+        const postId = document.getElementById("reportPostId").value;
+        const commentId = document.getElementById("reportCommentId").value;
+        const motivo = document.getElementById("reportMotivo").value;
+        const descripcion = document.getElementById("reportDescripcion").value.trim();
+
+        const reportData = {
+            tipo,
+            motivo,
+            descripcion
+        };
+
+        if (tipo === "post") {
+            reportData.postId = postId;
+        }
+
+        if (tipo === "comment") {
+            reportData.commentId = commentId;
+        }
+
+        try {
+            const response = await fetch("/api/reports", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(reportData)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "Error al crear reporte");
+                return;
+            }
+
+            alert("Reporte enviado correctamente");
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById("reportModal"));
+            if (modal) modal.hide();
+
+            reportForm.reset();
+
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo conectar con el servidor");
+        }
+    });
+}
+
+window.openReportModal = openReportModal;

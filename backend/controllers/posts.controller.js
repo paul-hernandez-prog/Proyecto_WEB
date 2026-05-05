@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Post = require("../models/Post");
 const Comment = require("../models/Comment");
+const User = require("../models/User");
 
 // Crear publicación
 const createPost = async (req, res) => {
@@ -227,11 +228,89 @@ const deletePost = async (req, res) => {
     }
 };
 
+const getFollowingPosts = async (req, res) => {
+    try {
+        const currentUser = await User.findById(req.user.id);
+
+        const posts = await Post.find({
+            autor: { $in: currentUser.following }
+        })
+            .populate("autor", "nombre apellido correo fotoPerfil role")
+            .sort({ createdAt: -1 });
+
+        res.json({
+            message: "Publicaciones de personas que sigues",
+            total: posts.length,
+            posts
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error al obtener publicaciones de seguidos",
+            error: error.message
+        });
+    }
+};
+
+const toggleLikePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                message: "ID de publicación no válido"
+            });
+        }
+
+        const post = await Post.findById(id);
+
+        if (!post) {
+            return res.status(404).json({
+                message: "Publicación no encontrada"
+            });
+        }
+
+        const userId = req.user.id;
+
+        const alreadyLiked = post.likes.some(
+            likeId => likeId.toString() === userId
+        );
+
+        if (alreadyLiked) {
+            post.likes = post.likes.filter(
+                likeId => likeId.toString() !== userId
+            );
+        } else {
+            post.likes.push(userId);
+        }
+
+        await post.save();
+
+        const updatedPost = await Post.findById(id)
+            .populate("autor", "nombre apellido correo fotoPerfil role");
+
+        res.json({
+            message: alreadyLiked ? "Like eliminado" : "Like agregado",
+            liked: !alreadyLiked,
+            likesCount: updatedPost.likes.length,
+            post: updatedPost
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error al actualizar like",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createPost,
     getPosts,
     getMyPosts,
     getPostById,
     updatePost,
-    deletePost
+    deletePost,
+    getFollowingPosts,
+    toggleLikePost
 };
