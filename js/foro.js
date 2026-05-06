@@ -8,6 +8,12 @@ let selectedCategory = "Todas";
 let allPosts = [];
 
 let allCategories = [];
+
+const COMMENTS_STEP = 2;
+
+let commentsByPost = {};
+let visibleCommentsByPost = {};
+
 const categorySidebar = document.getElementById("categorySidebar");
 const categorySelect = document.getElementById("categoria");
 
@@ -329,9 +335,11 @@ function createPostCard(post) {
 <div class="comments-section">
     <h5>Comentarios</h5>
 
-    <div id="comments-${post._id}" class="comment-list">
+    <div id="comments-${post._id}" class="comments-list">
         <p class="text-muted">Cargando comentarios...</p>
     </div>
+
+    <div id="commentsMore-${post._id}" class="comments-more-box"></div>
 
     <form class="comment-form" data-post-id="${post._id}">
     <input 
@@ -360,12 +368,22 @@ function getAuthorName(post) {
     return `${post.autor.nombre || ""} ${post.autor.apellido || ""}`.trim();
 }
 
-function getCategoryBadge(category) {
-    if (category === "Software") return "bg-danger";
-    if (category === "Sistemas") return "bg-warning text-dark";
-    if (category === "Ciberseguridad") return "bg-primary";
-    if (category === "IA") return "bg-success";
-    return "bg-secondary";
+function getCategoryBadge(categoryName) {
+    if (!allCategories) {
+        return "bg-secondary";
+    }
+
+    const category = allCategories.find(c => c.nombre === categoryName);
+
+    if (!category) {
+        return "bg-secondary";
+    }
+
+    if (category.color === "warning" || category.color === "info") {
+        return `bg-${category.color} text-dark`;
+    }
+
+    return `bg-${category.color}`;
 }
 
 function escapeHTML(text) {
@@ -383,12 +401,19 @@ function escapeHTML(text) {
 
 async function loadComments(postId) {
     const commentsContainer = document.getElementById(`comments-${postId}`);
+    const commentsMoreContainer = document.getElementById(`commentsMore-${postId}`);
 
     if (!commentsContainer) {
         return;
     }
 
     try {
+        commentsContainer.innerHTML = `<p class="text-muted">Cargando comentarios...</p>`;
+
+        if (commentsMoreContainer) {
+            commentsMoreContainer.innerHTML = "";
+        }
+
         const response = await fetch(`/api/comments/post/${postId}`, {
             headers: {
                 "Authorization": `Bearer ${token}`
@@ -398,22 +423,91 @@ async function loadComments(postId) {
         const data = await response.json();
 
         if (!response.ok) {
-            commentsContainer.innerHTML = `<p class="text-danger">Error al cargar comentarios</p>`;
+            commentsContainer.innerHTML = `
+                <p class="text-danger">
+                    ${data.message || "Error al cargar comentarios"}
+                </p>
+            `;
             return;
         }
 
-        if (data.comments.length === 0) {
-            commentsContainer.innerHTML = `<p class="text-muted">Todavía no hay comentarios.</p>`;
-            return;
-        }
+        commentsByPost[postId] = data.comments || [];
+        visibleCommentsByPost[postId] = COMMENTS_STEP;
 
-        commentsContainer.innerHTML = data.comments.map(comment => createCommentCard(comment, postId)).join("");
+        renderComments(postId);
 
     } catch (error) {
         console.error(error);
-        commentsContainer.innerHTML = `<p class="text-danger">No se pudo conectar con el servidor.</p>`;
+        commentsContainer.innerHTML = `
+            <p class="text-danger">
+                No se pudieron cargar los comentarios.
+            </p>
+        `;
     }
 }
+
+function renderComments(postId) {
+    const commentsContainer = document.getElementById(`comments-${postId}`);
+    const commentsMoreContainer = document.getElementById(`commentsMore-${postId}`);
+
+    if (!commentsContainer) {
+        return;
+    }
+
+    const comments = commentsByPost[postId] || [];
+    const visibleCount = visibleCommentsByPost[postId] || COMMENTS_STEP;
+
+    if (comments.length === 0) {
+        commentsContainer.innerHTML = `
+            <p class="text-muted">No hay comentarios todavía.</p>
+        `;
+
+        if (commentsMoreContainer) {
+            commentsMoreContainer.innerHTML = "";
+        }
+
+        return;
+    }
+
+    const visibleComments = comments.slice(0, visibleCount);
+
+    commentsContainer.innerHTML = visibleComments
+        .map(comment => createCommentCard(comment, postId))
+        .join("");
+
+    const remainingComments = comments.length - visibleCount;
+
+    if (!commentsMoreContainer) {
+        return;
+    }
+
+    if (remainingComments > 0) {
+        commentsMoreContainer.innerHTML = `
+            <button 
+                type="button"
+                class="btn btn-outline-primary btn-sm mt-2"
+                onclick="showMoreComments('${postId}')"
+            >
+                Mostrar más
+            </button>
+        `;
+    } else {
+        commentsMoreContainer.innerHTML = "";
+    }
+}
+
+function showMoreComments(postId) {
+    const comments = commentsByPost[postId] || [];
+
+    visibleCommentsByPost[postId] = Math.min(
+        (visibleCommentsByPost[postId] || COMMENTS_STEP) + COMMENTS_STEP,
+        comments.length
+    );
+
+    renderComments(postId);
+}
+
+window.showMoreComments = showMoreComments;
 
 function createCommentCard(comment, postId) {
     const authorName = `${comment.autor?.nombre || ""} ${comment.autor?.apellido || ""}`.trim();

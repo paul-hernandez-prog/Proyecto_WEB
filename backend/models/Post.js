@@ -26,12 +26,6 @@ const postSchema = new mongoose.Schema(
             default: "",
             trim: true
         },
-
-        youtubeUrl: {
-            type: String,
-            default: "",
-            trim: true
-        },
         youtubeUrl: {
             type: String,
             trim: true,

@@ -301,3 +301,14 @@ button:hover {
     font-weight: 600;
     color: #310b56;
 }
+
+.comments-more-box {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.comments-more-box button {
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
