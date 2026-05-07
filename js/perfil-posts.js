@@ -35,7 +35,8 @@ if (createPostForm) {
         let contenido = "";
 
         if (typeof quill !== "undefined" && quill) {
-            contenido = quill.getText().trim();
+            contenido = quill.root.innerHTML.trim();
+            contenidoTexto = quill.getText().trim();
         }
 
         const postData = {
@@ -46,7 +47,7 @@ if (createPostForm) {
             imagenUrl: document.getElementById("postImagenUrl").value.trim()
         };
 
-        if (!postData.titulo || !postData.categoria || !postData.contenido) {
+        if (!postData.titulo || !postData.categoria || !contenidoTexto) {
             alert("Título, categoría y descripción son obligatorios");
             return;
         }
@@ -97,7 +98,8 @@ if (editPostForm) {
         let contenido = "";
 
         if (typeof quillEdit !== "undefined" && quillEdit) {
-            contenido = quillEdit.getText().trim();
+            contenido = quillEdit.root.innerHTML.trim();
+            contenidoTexto = quillEdit.getText().trim();
         }
 
         const postData = {
@@ -108,7 +110,7 @@ if (editPostForm) {
     imagenUrl: document.getElementById("editPostImagenUrl").value.trim()
 };
 
-        if (!postData.titulo || !postData.categoria || !postData.contenido) {
+        if (!postData.titulo || !postData.categoria || !contenidoTexto) {
             alert("Título, categoría y descripción son obligatorios");
             return;
         }
@@ -238,7 +240,9 @@ function renderMyPosts() {
                     <span class="badge ${getCategoryBadge(post.categoria)}">${escapeHTML(post.categoria)}</span>
                 </div>
 
-                <p class="post-content">${escapeHTML(post.contenido)}</p>
+                <div class="post-content rich-content">
+                    ${post.contenido || ""}
+                </div>
 
                 ${post.imagenUrl ? `
     <img 
@@ -273,7 +277,7 @@ function openEditPost(id) {
 
     modalElement.addEventListener("shown.bs.modal", function setEditorContent() {
         if (typeof quillEdit !== "undefined" && quillEdit) {
-            quillEdit.setText(post.contenido || "");
+            quillEdit.root.innerHTML = post.contenido || "";
         }
 
         modalElement.removeEventListener("shown.bs.modal", setEditorContent);

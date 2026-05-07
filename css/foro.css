@@ -306,6 +306,7 @@ button:hover {
     display: flex;
     justify-content: center;
     margin-top: 8px;
+    margin-bottom: 15px;
 }
 
 .comments-more-box button {

@@ -19,7 +19,7 @@ const API_URL = "/api/users";
 correo.required = true;
 password.required = true;
 
-toggleBtn.addEventListener("click", () => {
+toggleBtn.addEventListener("click", () => { //Hacer toggle entre login y register
     isLogin = !isLogin;
     isAdmin = false;
 
@@ -34,11 +34,11 @@ toggleBtn.addEventListener("click", () => {
         adminBtn.style.display = "block";
 
         nombre.style.display = "none";
-        apellido.style.display = "none";
+        apellido.style.display = "none"; //no mostramos estos campos
         confirmar.style.display = "none";
 
         nombre.required = false;
-        apellido.required = false;
+        apellido.required = false; //Deshabilitamos pq podrian causar error
         confirmar.required = false;
     } else {
         title.textContent = "Registrarse";
@@ -107,10 +107,10 @@ async function registerUser() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(userData)
+            body: JSON.stringify(userData) //lo mandamos como JSON
         });
 
-        const data = await response.json();
+        const data = await response.json(); //Lo recuperamos como objeto de JS
 
         if (!response.ok) {
             alert(data.message || "Error al crear usuario");
@@ -119,7 +119,7 @@ async function registerUser() {
 
         alert("Cuenta creada correctamente");
 
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data.user)); //Lo guardamos localmente como JSON
         localStorage.setItem("token", data.token);
 
         window.location.href = "foro.html";

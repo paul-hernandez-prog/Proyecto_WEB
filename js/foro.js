@@ -293,8 +293,8 @@ function createPostCard(post) {
 
             <small class="text-muted">Publicado: ${createdDate}</small>
 
-            <div class="post-content">
-                <p>${escapeHTML(post.contenido)}</p>
+            <div class="post-content rich-content">
+                ${post.contenido || ""}
 
                 ${post.imagenUrl ? `
                     <img class="content-image" src="${escapeHTML(post.imagenUrl)}" alt="Imagen de publicación">
