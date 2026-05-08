@@ -1,6 +1,7 @@
 const postToken = localStorage.getItem("token");
 const postUser = JSON.parse(localStorage.getItem("user"));
 
+const followingContainer = document.getElementById("followingContainer");
 const myPostsContainer = document.getElementById("myPostsContainer");
 const myCommentsContainer = document.getElementById("myCommentsContainer");
 const createPostForm = document.getElementById("createPostForm");
@@ -26,6 +27,7 @@ async function initPerfil() {
     await loadCategories();
     await loadMyPosts();
     await loadMyComments();
+    await loadFollowingUsers();
 }
 
 if (createPostForm) {
@@ -601,3 +603,114 @@ function createYouTubeIframe(url) {
         </div>
     `;
 }
+
+async function loadFollowingUsers() {
+    if (!followingContainer) {
+        return;
+    }
+
+    try {
+        followingContainer.innerHTML = createLoader("Cargando personas que sigues...");
+
+        const response = await fetch("/api/users/me/following", {
+            headers: {
+                "Authorization": `Bearer ${postToken}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            followingContainer.innerHTML = `
+                <p class="text-danger">${data.message || "Error al cargar personas que sigues"}</p>
+            `;
+            return;
+        }
+
+        renderFollowingUsers(data.following);
+
+    } catch (error) {
+        console.error(error);
+        followingContainer.innerHTML = `
+            <p class="text-danger">No se pudo conectar con el servidor.</p>
+        `;
+    }
+}
+
+function renderFollowingUsers(following) {
+    if (!following || following.length === 0) {
+        followingContainer.innerHTML = `
+            <p class="text-muted">Todavía no sigues a nadie.</p>
+        `;
+        return;
+    }
+
+    followingContainer.innerHTML = following.map(person => {
+        const fullName = `${person.nombre || ""} ${person.apellido || ""}`.trim();
+
+        return `
+            <div class="following-card">
+
+                <img 
+                    class="following-img"
+                    src="${escapeHTML(person.fotoPerfil || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")}"
+                    alt="Foto de perfil"
+                >
+
+                <div class="following-info">
+                    <strong>${escapeHTML(fullName || "Usuario sin nombre")}</strong>
+                    <small>${escapeHTML(person.correo || "")}</small>
+                    <span class="badge bg-secondary">${escapeHTML(person.role || "user")}</span>
+                </div>
+
+                <button 
+                    class="btn btn-outline-danger btn-sm"
+                    onclick="unfollowFromProfile('${person._id}')"
+                >
+                    Dejar de seguir
+                </button>
+
+            </div>
+        `;
+    }).join("");
+}
+
+async function unfollowFromProfile(userId) {
+    const confirmUnfollow = confirm("¿Seguro que quieres dejar de seguir a esta persona?");
+
+    if (!confirmUnfollow) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/users/${userId}/unfollow`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${postToken}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Error al dejar de seguir usuario");
+            return;
+        }
+
+        // Actualizar localStorage para que también se refleje en frontend
+        const savedUser = JSON.parse(localStorage.getItem("user"));
+
+        if (savedUser && savedUser.following) {
+            savedUser.following = savedUser.following.filter(id => id !== userId);
+            localStorage.setItem("user", JSON.stringify(savedUser));
+        }
+
+        await loadFollowingUsers();
+
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor");
+    }
+}
+
+window.unfollowFromProfile = unfollowFromProfile;

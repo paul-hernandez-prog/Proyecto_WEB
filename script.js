@@ -28,7 +28,7 @@ toggleBtn.addEventListener("click", () => { //Hacer toggle entre login y registe
     if (isLogin) {
         title.textContent = "Iniciar Sesión";
         submitBtn.textContent = "Entrar";
-        toggleBtn.textContent = "Sign Up";
+        toggleBtn.textContent = "Registrarse";
         adminBtn.textContent = "Iniciar como administrador";
 
         adminBtn.style.display = "block";
@@ -43,7 +43,7 @@ toggleBtn.addEventListener("click", () => { //Hacer toggle entre login y registe
     } else {
         title.textContent = "Registrarse";
         submitBtn.textContent = "Crear cuenta";
-        toggleBtn.textContent = "Log In";
+        toggleBtn.textContent = "Iniciar sesión";
 
         adminBtn.style.display = "none";
 

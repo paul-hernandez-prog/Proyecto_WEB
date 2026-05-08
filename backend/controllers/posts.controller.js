@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const User = require("../models/User");
+const Report = require("../models/Report");
 
 // Crear publicación
 const createPost = async (req, res) => {
@@ -214,6 +215,7 @@ const deletePost = async (req, res) => {
         }
 
         await Comment.deleteMany({ post: id });
+        await Report.deleteMany({ post: id });
         await Post.findByIdAndDelete(id);
 
         res.json({

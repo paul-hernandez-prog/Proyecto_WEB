@@ -3,6 +3,7 @@ const user = JSON.parse(localStorage.getItem("user"));
 
 const API_CATEGORIES = "/api/categories";
 const API_REPORTS = "/api/reports";
+const API_POSTS = "/api/posts";
 const reportsList = document.getElementById("reportsList");
 const editReportForm = document.getElementById("editReportForm");
 const confirmDeleteReport = document.getElementById("confirmDeleteReport");
@@ -253,7 +254,7 @@ function openEditCategory(id) {
 function openDeleteCategory(id) {
     console.log("Categoría a eliminar:", id);
 
-    categoryIdToDelete = id;
+    categoryIdToDelete = id;    
 
     const modalElement = document.getElementById("deleteCategoryModal");
 
@@ -388,6 +389,16 @@ function renderReports() {
                             Estado
                         </button>
 
+                            ${report.tipo === "post" && report.post ? `
+                                <button 
+                                    type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    onclick="deleteReportedPost('${report.post._id}')"
+                                >
+                                    Eliminar publicación
+                                </button>
+                            ` : ""}
+
                         <button 
                             type="button"
                             class="btn btn-outline-danger btn-sm"
@@ -507,6 +518,39 @@ if (confirmDeleteReport && confirmDeleteReport.dataset.listenerAdded !== "true")
     });
 }
 
+async function deleteReportedPost(postId) {
+    const confirmDelete = confirm("¿Seguro que quieres eliminar esta publicación reportada?");
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_POSTS}/${postId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || "Error al eliminar publicación");
+            return;
+        }
+
+        alert("Publicación eliminada correctamente");
+
+        await loadReports();
+
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor");
+    }
+}
+
 window.openEditReport = openEditReport;
 window.openDeleteReport = openDeleteReport;
+window.deleteReportedPost = deleteReportedPost;
 

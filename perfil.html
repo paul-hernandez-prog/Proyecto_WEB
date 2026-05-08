@@ -49,8 +49,7 @@
                 data-bs-target="#editProfileModal">
             </i>
 
-            <button type="button" data-bs-toggle="modal" data-bs-target="#updatePhotoModal" class="navbar-btn">Foto de perfil</button>
-            <button type="button" data-bs-toggle="modal" data-bs-target="#logoutModal" class="navbar-btn" >Log out</button>
+            <button type="button" data-bs-toggle="modal" data-bs-target="#logoutModal" class="navbar-btn" >Cerrar sesión</button>
             
         </div>
 
@@ -66,16 +65,24 @@
 
     </div>
 
-        <div class="right-column">
+    <div class="right-column">
 
-          <div class="comments-section">
-            <h5>Mis comentarios</h5>
-            <div id="myCommentsContainer">
-              <p class="text-muted">Cargando tus comentarios...</p>
-            </div>
-          </div>
-        
+    <div class="comments-section">
+        <h5>Mis comentarios</h5>
+        <div id="myCommentsContainer">
+        <p class="text-muted">Cargando tus comentarios...</p>
         </div>
+    </div>
+
+    <div class="following-section mt-4">
+        <h5>Personas que sigo</h5>
+
+        <div id="followingContainer">
+        <p class="text-muted">Cargando personas que sigues...</p>
+        </div>
+    </div>
+
+    </div>
 
 </div>
 
@@ -131,6 +138,16 @@
           <div class="mb-3">
             <label class="form-label">Correo</label>
             <input type="email" class="form-control" id="editCorreo" placeholder="Correo">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Foto de perfil</label>
+            <input 
+                type="url" 
+                class="form-control" 
+                id="editFotoPerfil" 
+                placeholder="https://ejemplo.com/tu-foto.jpg"
+            >
           </div>
 
           <div class="mb-3">
@@ -325,43 +342,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="updatePhotoModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title">Actualizar foto de perfil</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <form id="photoForm">
-          <div class="mb-3">
-            <label for="profileUrl" class="form-label">URL de la foto</label>
-            <input 
-              type="url" 
-              class="form-control" 
-              id="profileUrl"
-              placeholder="https://ejemplo.com/tu-foto.jpg"
-              required
-            >
-          </div>
-        </form>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancelar
-        </button>
-        <button type="submit" form="photoForm" class="btn btn-primary">
-          Guardar cambios
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 <!-- Modal editar comentario -->
 <div class="modal fade" id="editCommentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -484,21 +464,31 @@
         window.location.href = "login.html";
     }
 
+    const DEFAULT_PROFILE_PHOTO = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+    const navbarProfileImg = document.getElementById("navbarProfileImg");
+
+    navbarProfileImg.src = user.fotoPerfil || DEFAULT_PROFILE_PHOTO;
+
     const editProfileForm = document.getElementById("editProfileForm"); //Recupera todas las cosas del modal del gear
     const editNombre = document.getElementById("editNombre");
     const editApellido = document.getElementById("editApellido");
     const editCorreo = document.getElementById("editCorreo");
+    const editFotoPerfil = document.getElementById("editFotoPerfil");
     const editPassword = document.getElementById("editPassword");
     const editConfirm = document.getElementById("editConfirm");
 
+
     const editProfileModal = document.getElementById("editProfileModal");
 
-    editProfileModal.addEventListener("show.bs.modal", () => { //Cuando abras el modal de editar perfil, se rellena 
-        editNombre.value = user.nombre || "";                   //con los campos actuales.
+    editProfileModal.addEventListener("show.bs.modal", () => {
+        user = JSON.parse(localStorage.getItem("user"));
+
+        editNombre.value = user.nombre || "";
         editApellido.value = user.apellido || "";
         editCorreo.value = user.correo || "";
+        editFotoPerfil.value = user.fotoPerfil || "";
 
-        editPassword.value = ""; //por seguridad no puedes ver las contraseñas
+        editPassword.value = "";
         editConfirm.value = "";
     });
 
@@ -520,7 +510,9 @@
         const updatedData = { //Creas un objeto con nuevos datos
             nombre: editNombre.value.trim(), //trim para eliminar los posibles espacios al inicio y al final
             apellido: editApellido.value.trim(),
-            correo: editCorreo.value.trim()
+            correo: editCorreo.value.trim(),
+            fotoPerfil: editFotoPerfil.value.trim()
+
         };
 
         if (editPassword.value.trim() !== "") { //Si si se quiso cambiar la contraseña
@@ -544,14 +536,17 @@
                 return;
             }
 
-            localStorage.setItem("user", JSON.stringify(data.user)); //guardamos en el navegador, a nuestro usuario actualizado
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            user = data.user;
+            navbarProfileImg.src = user.fotoPerfil || DEFAULT_PROFILE_PHOTO;
 
             alert("Perfil actualizado correctamente");
 
             const modal = bootstrap.Modal.getInstance(editProfileModal);
             modal.hide();
 
-            window.location.reload(); //recargamos para ver los cambios
+            window.location.reload();
 
         } catch (error) {
             console.error(error);
@@ -598,80 +593,7 @@
     });
 
 
-    const DEFAULT_PROFILE_PHOTO = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-
-    //FOTO DE PERFIL
-
-    if (!token || !user) {
-        alert("Debes iniciar sesión");
-        window.location.href = "login.html";
-    }
-
-    const navbarProfileImg = document.getElementById("navbarProfileImg");
-    const updatePhotoModal = document.getElementById("updatePhotoModal");
-    const photoForm = document.getElementById("photoForm");
-    const profileUrl = document.getElementById("profileUrl");
-
-    // Mostrar la foto actual en la navbar cuando carga la página
-    navbarProfileImg.src = user.fotoPerfil || DEFAULT_PROFILE_PHOTO;
-
-    // Cuando se abre el modal, poner la foto actual en el input
-    updatePhotoModal.addEventListener("show.bs.modal", () => {
-        user = JSON.parse(localStorage.getItem("user"));
-        profileUrl.value = user.fotoPerfil || "";
-    });
-
-    // Cuando se guarda la nueva foto
-    photoForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const nuevaFoto = profileUrl.value.trim();
-
-        if (!nuevaFoto) {
-            alert("Pega una URL válida para tu foto");
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/users/${user.id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    fotoPerfil: nuevaFoto
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                alert(data.message || "Error al actualizar la foto");
-                return;
-            }
-
-            const updatedUser = {
-                ...user,
-                ...data.user,
-                fotoPerfil: data.user?.fotoPerfil || nuevaFoto
-            };
-
-            localStorage.setItem("user", JSON.stringify(updatedUser));
-
-            user = updatedUser;
-            navbarProfileImg.src = updatedUser.fotoPerfil;
-
-            alert("Foto de perfil actualizada correctamente");
-
-            const modal = bootstrap.Modal.getInstance(updatePhotoModal);
-            modal.hide();
-
-        } catch (error) {
-            console.error(error);
-            alert("No se pudo conectar con el servidor");
-        }
-    });
+   
 
     </script>
     <script src="js/loader.js"></script>

@@ -216,3 +216,46 @@ button:hover {
     font-weight: 600;
     color: #310b56;
 }
+
+.following-section {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.following-section h5 {
+    margin-bottom: 15px;
+}
+
+.following-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    margin-bottom: 10px;
+}
+
+.following-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.following-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.following-info small {
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.following-info .badge {
+    width: fit-content;
+    margin-top: 4px;
+}

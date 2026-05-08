@@ -10,7 +10,8 @@ const {
     deleteUser,
     getProfile,
     followUser,
-    unfollowUser
+    unfollowUser,
+    getFollowingUsers
 } = require("../controllers/users.controller");
 
 const {
@@ -24,9 +25,10 @@ router.post("/login", loginUser);
 
 // Ruta para validar token
 router.get("/profile", protect, getProfile);
-
+router.get("/me/following", protect, getFollowingUsers);
 // CRUD protegido
 router.get("/", protect, adminOnly, getUsers);
+
 router.get("/:id", protect, getUserById);
 router.post("/", protect, adminOnly, createUser);
 router.put("/:id", protect, updateUser);
