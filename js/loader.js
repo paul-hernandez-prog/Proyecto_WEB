@@ -14,3 +14,31 @@ window.createLoader = function (message = "Cargando...") {
         </div>
     `;
 };
+
+window.getSubmitButton = function (form) {
+    if (!form) return null;
+
+    return document.querySelector(`button[type="submit"][form="${form.id}"]`)
+        || form.querySelector("button[type='submit']");
+};
+
+window.startButtonLoading = function (button, loadingText = "Cargando...") {
+    if (!button) return null;
+
+    if (button.disabled) {
+        return null;
+    }
+
+    const originalHTML = button.innerHTML;
+
+    button.disabled = true;
+    button.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        ${loadingText}
+    `;
+
+    return function stopLoading() {
+        button.disabled = false;
+        button.innerHTML = originalHTML;
+    };
+};

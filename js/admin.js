@@ -45,6 +45,13 @@ if (createCategoryForm) {
             return;
         }
 
+        const button = getSubmitButton(createCategoryForm);
+        const stopLoading = startButtonLoading(button, "Creando...");
+
+        if (!stopLoading) {
+            return;
+        }
+
         try {
             const response = await fetch(API_CATEGORIES, {
                 method: "POST",
@@ -72,6 +79,8 @@ if (createCategoryForm) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
@@ -86,6 +95,13 @@ if (editCategoryForm) {
 
         if (!nombre) {
             alert("El nombre es obligatorio");
+            return;
+        }
+        
+        const button = getSubmitButton(editCategoryForm);
+        const stopLoading = startButtonLoading(button, "Guardando...");
+
+        if (!stopLoading) {
             return;
         }
 
@@ -114,13 +130,21 @@ if (editCategoryForm) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
-        }
+        } finally {
+            stopLoading();
+        }   
     });
 }
 
 if (confirmDeleteCategory) {
     confirmDeleteCategory.addEventListener("click", async function () {
         if (!categoryIdToDelete) {
+            return;
+        }
+
+        const stopLoading = startButtonLoading(confirmDeleteCategory, "Eliminando...");
+
+        if (!stopLoading) {
             return;
         }
 
@@ -149,6 +173,8 @@ if (confirmDeleteCategory) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
@@ -376,7 +402,10 @@ function renderReports() {
                         ` : ""}
 
                         <small class="text-muted">
-                            ${new Date(report.createdAt).toLocaleString("es-MX")}
+                            ${new Date(report.createdAt).toLocaleString("es-MX", {
+                                dateStyle: "short",
+                                timeStyle: "short"
+                            })}
                         </small>
                     </div>
 
@@ -393,7 +422,7 @@ function renderReports() {
                                 <button 
                                     type="button"
                                     class="btn btn-outline-danger btn-sm"
-                                    onclick="deleteReportedPost('${report.post._id}')"
+                                    onclick="deleteReportedPost('${report.post._id}', this)"
                                 >
                                     Eliminar publicación
                                 </button>
@@ -445,6 +474,13 @@ if (editReportForm && editReportForm.dataset.listenerAdded !== "true") {
         const id = document.getElementById("editReportId").value;
         const estado = document.getElementById("editReportEstado").value;
 
+        const button = getSubmitButton(editReportForm);
+        const stopLoading = startButtonLoading(button, "Guardando...");
+
+        if (!stopLoading) {
+            return;
+        }
+
         try {
             const response = await fetch(`${API_REPORTS}/${id}`, {
                 method: "PUT",
@@ -470,6 +506,8 @@ if (editReportForm && editReportForm.dataset.listenerAdded !== "true") {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
@@ -486,6 +524,12 @@ if (confirmDeleteReport && confirmDeleteReport.dataset.listenerAdded !== "true")
 
     confirmDeleteReport.addEventListener("click", async function () {
         if (!reportIdToDelete) {
+            return;
+        }
+
+        const stopLoading = startButtonLoading(confirmDeleteReport, "Eliminando...");
+
+        if (!stopLoading) {
             return;
         }
 
@@ -514,14 +558,22 @@ if (confirmDeleteReport && confirmDeleteReport.dataset.listenerAdded !== "true")
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
 
-async function deleteReportedPost(postId) {
+async function deleteReportedPost(postId, button) {
     const confirmDelete = confirm("¿Seguro que quieres eliminar esta publicación reportada?");
 
     if (!confirmDelete) {
+        return;
+    }
+
+    const stopLoading = startButtonLoading(button, "Eliminando...");
+
+    if (!stopLoading) {
         return;
     }
 
@@ -547,6 +599,8 @@ async function deleteReportedPost(postId) {
     } catch (error) {
         console.error(error);
         alert("No se pudo conectar con el servidor");
+    } finally {
+            stopLoading();
     }
 }
 

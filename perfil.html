@@ -519,6 +519,13 @@
             updatedData.password = editPassword.value; //le metemos al objeto la nueva contraseña
         }
 
+        const button = getSubmitButton(editProfileForm);
+        const stopLoading = startButtonLoading(button, "Guardando...");
+
+        if (!stopLoading) {
+            return;
+        }
+
         try {
             const response = await fetch(`/api/users/${user.id}`, { //Llamada al servidor
                 method: "PUT", //queremos actualizar algo
@@ -551,6 +558,8 @@
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 
@@ -562,6 +571,12 @@
         const confirmar = confirm("¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer."); //confirm muestra 2 botones aceptar / cancelar true / false
 
         if (!confirmar) { //Si quiso cancelar
+            return;
+        }
+
+        const stopLoading = startButtonLoading(deleteAccountBtn, "Eliminando...");
+
+        if (!stopLoading) {
             return;
         }
 
@@ -589,6 +604,8 @@
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 

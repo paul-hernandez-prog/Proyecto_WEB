@@ -80,10 +80,23 @@ adminBtn.addEventListener("click", () => {
 form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    if (isLogin) {
-        await loginUser();
-    } else {
-        await registerUser();
+    const stopLoading = startButtonLoading(
+        submitBtn,
+        isLogin ? "Entrando..." : "Creando cuenta..."
+    );
+
+    if (!stopLoading) {
+        return;
+    }
+
+    try {
+        if (isLogin) {
+            await loginUser();
+        } else {
+            await registerUser();
+        }
+    } finally {
+        stopLoading();
     }
 });
 

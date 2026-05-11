@@ -16,8 +16,8 @@ const app = express();
 connectDB();
 
 // Middlewares
-app.use(cors());
-app.use(express.json());
+app.use(cors()); //permite peticiones entre frontend y backend
+app.use(express.json()); //permite que el backend reciba datos en formato json
 
 // Rutas del backend
 app.use("/api/users", usersRoutes);
@@ -52,6 +52,9 @@ app.get("/perfil.html", (req, res) => {
     res.sendFile(path.join(__dirname, "perfil.html"));
 });
 
+app.get("/usuario.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "usuario.html"));
+});
 app.get("/amigos.html", (req, res) => {
     res.sendFile(path.join(__dirname, "amigos.html"));
 });
@@ -77,6 +80,7 @@ app.use((req, res) => {
         message: "Ruta no encontrada"
     });
 });
+
 
 const PORT = process.env.PORT || 3000;
 

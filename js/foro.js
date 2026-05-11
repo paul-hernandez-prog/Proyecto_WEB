@@ -67,6 +67,7 @@ document.addEventListener("submit", async function (e) {
     const form = e.target;
     const postId = form.dataset.postId;
     const input = document.getElementById(`comment-input-${postId}`);
+    const button = form.querySelector("button[type='submit']");
 
     if (!input) {
         alert("No se encontró el input del comentario");
@@ -79,6 +80,16 @@ document.addEventListener("submit", async function (e) {
         alert("El comentario no puede estar vacío");
         return;
     }
+
+    const originalButtonHTML = button.innerHTML;
+
+    button.disabled = true;
+    input.disabled = true;
+
+    button.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Comentando...
+    `;
 
     try {
         const response = await fetch(`/api/comments/post/${postId}`, {
@@ -103,6 +114,11 @@ document.addEventListener("submit", async function (e) {
     } catch (error) {
         console.error(error);
         alert("No se pudo conectar con el servidor");
+
+    } finally {
+        button.disabled = false;
+        input.disabled = false;
+        button.innerHTML = originalButtonHTML;
     }
 });
 
@@ -264,7 +280,10 @@ function isPostLiked(post) {
 function createPostCard(post) {
     const authorName = getAuthorName(post);
     const authorPhoto = post.autor?.fotoPerfil || DEFAULT_PROFILE_PHOTO;
-    const createdDate = new Date(post.createdAt).toLocaleString("es-MX");
+    const createdDate = new Date(post.createdAt).toLocaleString("es-MX", {
+        dateStyle: "short",
+        timeStyle: "short"
+    });
 
     const authorId = post.autor?._id;
     const isFollowing = authorId ? isFollowingUser(authorId) : false;
@@ -282,8 +301,18 @@ function createPostCard(post) {
 
             <div class="post-meta">
                 <div>
-                    <img src="${escapeHTML(authorPhoto)}" class="profile-image">
-                    <span><strong>Autor:</strong> ${escapeHTML(authorName)}</span>
+                    ${authorId ? `
+                        <a href="${getUserProfileUrl(authorId)}" class="text-decoration-none text-dark">
+                            <img src="${escapeHTML(authorPhoto)}" class="profile-image">
+                        </a>
+
+                        <a href="${getUserProfileUrl(authorId)}" class="text-decoration-none text-dark">
+                            <strong>Autor:</strong> ${escapeHTML(authorName)}
+                        </a>
+                    ` : `
+                        <img src="${escapeHTML(authorPhoto)}" class="profile-image">
+                        <span><strong>Autor:</strong> ${escapeHTML(authorName)}</span>
+                    `}
                 </div>
 
                 <span class="badge ${getCategoryBadge(post.categoria)}">
@@ -306,7 +335,7 @@ function createPostCard(post) {
             <div class="post-actions">
         <button 
             class="btn ${isLiked ? "btn-primary" : "btn-outline-primary"} btn-sm"
-            onclick="toggleLikePost('${post._id}')"
+            onclick="toggleLikePost('${post._id}', this)"
         >
             <i class="fa-solid fa-thumbs-up"></i>
             ${isLiked ? "Liked" : "Like"} ${likesCount}
@@ -323,7 +352,7 @@ function createPostCard(post) {
     ${authorId && authorId !== user.id ? `
         <button 
             class="btn ${isFollowing ? "btn-success" : "btn-outline-success"} btn-sm"
-            onclick="toggleFollowUser('${authorId}')"
+            onclick="toggleFollowUser('${authorId}', this)"
         >
             <i class="fa-solid ${isFollowing ? "fa-user-check" : "fa-user-plus"}"></i>
             ${isFollowing ? "Siguiendo" : "Seguir"}
@@ -384,6 +413,18 @@ function getCategoryBadge(categoryName) {
     }
 
     return `bg-${category.color}`;
+}
+
+function getUserProfileUrl(authorId) {
+    if (!authorId) {
+        return "#";
+    }
+
+    if (user && authorId.toString() === user.id.toString()) {
+        return "perfil.html";
+    }
+
+    return `usuario.html?id=${authorId}`;
 }
 
 function escapeHTML(text) {
@@ -511,12 +552,21 @@ window.showMoreComments = showMoreComments;
 
 function createCommentCard(comment, postId) {
     const authorName = `${comment.autor?.nombre || ""} ${comment.autor?.apellido || ""}`.trim();
-    const createdDate = new Date(comment.createdAt).toLocaleString("es-MX");
-
+    const createdDate = new Date(comment.createdAt).toLocaleString("es-MX", {
+    dateStyle: "short",
+    timeStyle: "short"
+});
+    const authorId = comment.autor?._id;
     return `
         <div class="comment">
             <div class="comment-header">
-                <strong>${escapeHTML(authorName || "Usuario eliminado")}</strong>
+                ${authorId ? `
+                    <a href="${getUserProfileUrl(authorId)}" class="text-decoration-none text-dark">
+                        <strong>${escapeHTML(authorName || "Usuario eliminado")}</strong>
+                    </a>
+                ` : `
+                    <strong>${escapeHTML(authorName || "Usuario eliminado")}</strong>
+                `}
             </div>
 
             <p>${escapeHTML(comment.contenido)}</p>
@@ -525,7 +575,13 @@ function createCommentCard(comment, postId) {
     `;
 }
 
-async function toggleFollowUser(userId) {
+async function toggleFollowUser(userId, button) {
+    const stopLoading = startButtonLoading(button, "Cargando...");
+
+    if (!stopLoading) {
+        return;
+    }
+
     try {
         const alreadyFollowing = isFollowingUser(userId);
 
@@ -568,10 +624,18 @@ async function toggleFollowUser(userId) {
     } catch (error) {
         console.error(error);
         alert("No se pudo conectar con el servidor");
+    } finally {
+        stopLoading();
     }
 }
 
-async function toggleLikePost(postId) {
+async function toggleLikePost(postId, button) {
+    const stopLoading = startButtonLoading(button, "...");
+
+    if (!stopLoading) {
+        return;
+    }
+
     try {
         const response = await fetch(`/api/posts/${postId}/like`, {
             method: "PUT",
@@ -600,6 +664,8 @@ async function toggleLikePost(postId) {
     } catch (error) {
         console.error(error);
         alert("No se pudo conectar con el servidor");
+    } finally {
+        stopLoading();
     }
 }
 
@@ -693,6 +759,13 @@ if (reportForm && reportForm.dataset.listenerAdded !== "true") {
     reportForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
+        const button = getSubmitButton(reportForm);
+        const stopLoading = startButtonLoading(button, "Enviando...");
+
+        if (!stopLoading) {
+            return;
+        }
+
         const tipo = document.getElementById("reportTipo").value;
         const postId = document.getElementById("reportPostId").value;
         const commentId = document.getElementById("reportCommentId").value;
@@ -740,6 +813,8 @@ if (reportForm && reportForm.dataset.listenerAdded !== "true") {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }

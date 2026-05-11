@@ -54,6 +54,13 @@ if (createPostForm) {
             return;
         }
 
+        const button = getSubmitButton(createPostForm);
+        const stopLoading = startButtonLoading(button, "Publicando...");
+
+        if (!stopLoading) {
+            return;
+        }
+
         try {
             const response = await fetch("/api/posts", {
                 method: "POST",
@@ -87,6 +94,8 @@ if (createPostForm) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
@@ -117,6 +126,13 @@ if (editPostForm) {
             return;
         }
 
+        const button = getSubmitButton(editPostForm);
+        const stopLoading = startButtonLoading(button, "Guardando...");
+
+        if (!stopLoading) {
+            return;
+        }
+
         try {
             const response = await fetch(`/api/posts/${id}`, {
                 method: "PUT",
@@ -144,6 +160,8 @@ if (editPostForm) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
@@ -151,6 +169,12 @@ if (editPostForm) {
 if (confirmDelete) {
     confirmDelete.addEventListener("click", async function () {
         if (!postIdToDelete) {
+            return;
+        }
+
+        const stopLoading = startButtonLoading(confirmDelete, "Eliminando...");
+
+        if (!stopLoading) {
             return;
         }
 
@@ -181,6 +205,8 @@ if (confirmDelete) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
@@ -373,7 +399,10 @@ function renderMyComments(comments) {
     myCommentsContainer.innerHTML = comments.map(comment => {
         const postTitle = comment.post ? comment.post.titulo : "Publicación eliminada";
         const category = comment.post ? comment.post.categoria : "";
-        const createdDate = new Date(comment.createdAt).toLocaleString("es-MX");
+        const createdDate = new Date(comment.createdAt).toLocaleString("es-MX", {
+            dateStyle: "short",
+            timeStyle: "short"
+        });
 
         return `
             <div class="comment">
@@ -416,6 +445,13 @@ if (editCommentForm) {
             return;
         }
 
+        const button = getSubmitButton(editCommentForm);
+        const stopLoading = startButtonLoading(button, "Guardando...");
+
+        if (!stopLoading) {
+            return;
+        }
+
         try {
             const response = await fetch(`/api/comments/${commentId}`, {
                 method: "PUT",
@@ -441,6 +477,8 @@ if (editCommentForm) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
+        } finally {
+            stopLoading();
         }
     });
 }
@@ -448,6 +486,12 @@ if (editCommentForm) {
 if (confirmDeleteComment) {
     confirmDeleteComment.addEventListener("click", async function () {
         if (!commentIdToDelete) {
+            return;
+        }
+        
+        const stopLoading = startButtonLoading(confirmDeleteComment, "Eliminando...");
+
+        if (!stopLoading) {
             return;
         }
 
@@ -476,7 +520,9 @@ if (confirmDeleteComment) {
         } catch (error) {
             console.error(error);
             alert("No se pudo conectar con el servidor");
-        }
+        } finally {
+            stopLoading();
+        }   
     });
 }
 
@@ -651,21 +697,26 @@ function renderFollowingUsers(following) {
         return `
             <div class="following-card">
 
+            <a href="usuario.html?id=${person._id}" class="text-decoration-none">
                 <img 
                     class="following-img"
                     src="${escapeHTML(person.fotoPerfil || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")}"
                     alt="Foto de perfil"
                 >
+            </a>
 
-                <div class="following-info">
+            <div class="following-info">
+                <a href="usuario.html?id=${person._id}" class="text-decoration-none text-dark">
                     <strong>${escapeHTML(fullName || "Usuario sin nombre")}</strong>
-                    <small>${escapeHTML(person.correo || "")}</small>
-                    <span class="badge bg-secondary">${escapeHTML(person.role || "user")}</span>
-                </div>
+                </a>
+
+                <small>${escapeHTML(person.correo || "")}</small>
+                <span class="badge bg-secondary">${escapeHTML(person.role || "user")}</span>
+            </div>
 
                 <button 
                     class="btn btn-outline-danger btn-sm"
-                    onclick="unfollowFromProfile('${person._id}')"
+                    onclick="unfollowFromProfile('${person._id}', this)"
                 >
                     Dejar de seguir
                 </button>
@@ -675,10 +726,16 @@ function renderFollowingUsers(following) {
     }).join("");
 }
 
-async function unfollowFromProfile(userId) {
+async function unfollowFromProfile(userId, button) {
     const confirmUnfollow = confirm("¿Seguro que quieres dejar de seguir a esta persona?");
 
     if (!confirmUnfollow) {
+        return;
+    }
+
+    const stopLoading = startButtonLoading(button, "Quitando...");
+
+    if (!stopLoading) {
         return;
     }
 
@@ -697,7 +754,6 @@ async function unfollowFromProfile(userId) {
             return;
         }
 
-        // Actualizar localStorage para que también se refleje en frontend
         const savedUser = JSON.parse(localStorage.getItem("user"));
 
         if (savedUser && savedUser.following) {
@@ -710,6 +766,8 @@ async function unfollowFromProfile(userId) {
     } catch (error) {
         console.error(error);
         alert("No se pudo conectar con el servidor");
+    } finally {
+        stopLoading();
     }
 }
 
