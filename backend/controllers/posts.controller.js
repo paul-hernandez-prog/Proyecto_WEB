@@ -7,7 +7,9 @@ const Report = require("../models/Report");
 // Crear publicación
 const createPost = async (req, res) => {
     try {
-        const { titulo, contenido, categoria, imagenUrl, youtubeUrl } = req.body;
+        const { titulo, contenido, categoria, youtubeUrl } = req.body;
+
+        const imagenUrl = req.file ? `/uploads/${req.file.filename}` : "";
 
         if (!titulo || !contenido || !categoria) {
             return res.status(400).json({
@@ -141,7 +143,7 @@ const getPostById = async (req, res) => {
 const updatePost = async (req, res) => {
     try {
         const { id } = req.params;
-        const { titulo, contenido, categoria, imagenUrl, youtubeUrl } = req.body;
+        const { titulo, contenido, categoria, youtubeUrl, eliminarImagen } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
@@ -166,7 +168,12 @@ const updatePost = async (req, res) => {
         if (titulo !== undefined) post.titulo = titulo;
         if (contenido !== undefined) post.contenido = contenido;
         if (categoria !== undefined) post.categoria = categoria;
-        if (imagenUrl !== undefined) post.imagenUrl = imagenUrl;
+        if (req.file) {
+            post.imagenUrl = `/uploads/${req.file.filename}`;
+        } else if (eliminarImagen === "true") {
+            post.imagenUrl = "";
+        }
+
         if (youtubeUrl !== undefined) post.youtubeUrl = youtubeUrl;
 
         await post.save();

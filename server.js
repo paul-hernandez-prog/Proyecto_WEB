@@ -29,6 +29,7 @@ app.use("/api/reports", reportsRoutes);
 // Archivos estáticos del frontend
 app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Servir script.js actual
 app.get("/script.js", (req, res) => {
@@ -55,6 +56,7 @@ app.get("/perfil.html", (req, res) => {
 app.get("/usuario.html", (req, res) => {
     res.sendFile(path.join(__dirname, "usuario.html"));
 });
+
 app.get("/amigos.html", (req, res) => {
     res.sendFile(path.join(__dirname, "amigos.html"));
 });

@@ -175,7 +175,7 @@ const getUserById = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params; //obtiene el ID de la URL
-        const { nombre, apellido, correo, password, role, fotoPerfil } = req.body;
+        const { nombre, apellido, correo, password, role } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
@@ -207,7 +207,9 @@ const updateUser = async (req, res) => {
         if (apellido) user.apellido = apellido;
         if (role) user.role = role; //cambios en general
         if (password) user.password = password;
-        if (fotoPerfil !== undefined) user.fotoPerfil = fotoPerfil;  //foto de perfil puede estar vacio
+        if (req.file) {
+            user.fotoPerfil = `/uploads/${req.file.filename}`;
+        }
 
         await user.save(); //por si cambia la contrasaña, para encriptarla de nuevo
 

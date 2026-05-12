@@ -35,23 +35,33 @@ if (createPostForm) {
         e.preventDefault();
 
         let contenido = "";
+        let contenidoTexto = "";
 
         if (typeof quill !== "undefined" && quill) {
             contenido = quill.root.innerHTML.trim();
             contenidoTexto = quill.getText().trim();
         }
 
-        const postData = {
-            titulo: document.getElementById("postTitulo").value.trim(),
-            categoria: document.getElementById("postCategoria").value,
-            contenido,
-            youtubeUrl: document.getElementById("postYoutube").value.trim(),
-            imagenUrl: document.getElementById("postImagenUrl").value.trim()
-        };
-
-        if (!postData.titulo || !postData.categoria || !contenidoTexto) {
+        if (
+            !document.getElementById("postTitulo").value.trim() ||
+            !document.getElementById("postCategoria").value ||
+            !contenidoTexto
+        ) {
             alert("Título, categoría y descripción son obligatorios");
             return;
+        }
+
+        const formData = new FormData();
+
+        formData.append("titulo", document.getElementById("postTitulo").value.trim());
+        formData.append("categoria", document.getElementById("postCategoria").value);
+        formData.append("contenido", contenido);
+        formData.append("youtubeUrl", document.getElementById("postYoutube").value.trim());
+
+        const imagen = document.getElementById("postImagen").files[0];
+
+        if (imagen) {
+            formData.append("imagen", imagen);
         }
 
         const button = getSubmitButton(createPostForm);
@@ -65,10 +75,9 @@ if (createPostForm) {
             const response = await fetch("/api/posts", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${postToken}`
                 },
-                body: JSON.stringify(postData)
+                body: formData
             });
 
             const data = await response.json();
@@ -107,21 +116,32 @@ if (editPostForm) {
         const id = document.getElementById("editPostId").value;
 
         let contenido = "";
+        let contenidoTexto = "";
 
         if (typeof quillEdit !== "undefined" && quillEdit) {
             contenido = quillEdit.root.innerHTML.trim();
             contenidoTexto = quillEdit.getText().trim();
         }
 
-        const postData = {
-    titulo: document.getElementById("editPostTitulo").value.trim(),
-    categoria: document.getElementById("editPostCategoria").value,
-    contenido,
-    youtubeUrl: document.getElementById("editPostYoutube").value.trim(),
-    imagenUrl: document.getElementById("editPostImagenUrl").value.trim()
-};
+        const formData = new FormData();
 
-        if (!postData.titulo || !postData.categoria || !contenidoTexto) {
+        formData.append("titulo", document.getElementById("editPostTitulo").value.trim());
+        formData.append("categoria", document.getElementById("editPostCategoria").value);
+        formData.append("contenido", contenido);
+        formData.append("youtubeUrl", document.getElementById("editPostYoutube").value.trim());
+
+        const imagen = document.getElementById("editPostImagen").files[0];
+        const eliminarImagen = document.getElementById("editEliminarImagen").checked;
+
+        if (imagen) {
+            formData.append("imagen", imagen);
+        }
+
+        if (eliminarImagen) {
+            formData.append("eliminarImagen", "true");
+        }
+
+        if (!document.getElementById("editPostTitulo").value.trim() || !document.getElementById("editPostCategoria").value || !contenidoTexto) {
             alert("Título, categoría y descripción son obligatorios");
             return;
         }
@@ -137,10 +157,9 @@ if (editPostForm) {
             const response = await fetch(`/api/posts/${id}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${postToken}`
                 },
-                body: JSON.stringify(postData)
+                body: formData
             });
 
             const data = await response.json();
@@ -295,11 +314,12 @@ function openEditPost(id) {
         return;
     }
 
+    document.getElementById("editEliminarImagen").checked = false;
+    document.getElementById("editPostImagen").value = "";
     document.getElementById("editPostId").value = post._id;
     document.getElementById("editPostTitulo").value = post.titulo;
     document.getElementById("editPostCategoria").value = post.categoria;
     document.getElementById("editPostYoutube").value = post.youtubeUrl || "";
-    document.getElementById("editPostImagenUrl").value = post.imagenUrl || "";
 
     const modalElement = document.getElementById("editPost");
 
@@ -398,7 +418,9 @@ function renderMyComments(comments) {
 
     myCommentsContainer.innerHTML = comments.map(comment => {
         const postTitle = comment.post ? comment.post.titulo : "Publicación eliminada";
+        const postId = comment.post ? comment.post._id : null;
         const category = comment.post ? comment.post.categoria : "";
+
         const createdDate = new Date(comment.createdAt).toLocaleString("es-MX", {
             dateStyle: "short",
             timeStyle: "short"
@@ -407,7 +429,16 @@ function renderMyComments(comments) {
         return `
             <div class="comment">
                 <div class="comment-header">
-                    <strong>En: ${escapeHTML(postTitle)}</strong>
+                    ${postId ? `
+                        <a 
+                            href="foro.html?postId=${postId}" 
+                            class="text-decoration-none text-dark"
+                        >
+                            <strong>En: ${escapeHTML(postTitle)}</strong>
+                        </a>
+                    ` : `
+                        <strong>En: ${escapeHTML(postTitle)}</strong>
+                    `}
 
                     <div class="comment-actions">
                         <button 

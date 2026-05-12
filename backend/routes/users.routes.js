@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middlewares/upload.middleware");
 
 const {
     createUser,
@@ -31,7 +32,9 @@ router.get("/", protect, adminOnly, getUsers);
 
 router.get("/:id", protect, getUserById);
 router.post("/", protect, adminOnly, createUser);
-router.put("/:id", protect, updateUser);
+
+router.put("/:id", protect, upload.single("fotoPerfil"), updateUser);
+
 router.delete("/:id", protect, deleteUser);
 
 router.put("/:id/follow", protect, followUser);

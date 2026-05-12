@@ -143,13 +143,15 @@
           <div class="mb-3">
             <label class="form-label">Foto de perfil</label>
             <input 
-                type="url" 
+                type="file" 
                 class="form-control" 
                 id="editFotoPerfil" 
-                placeholder="https://ejemplo.com/tu-foto.jpg"
+                accept="image/*"
             >
+            <small class="text-muted">
+                Si no seleccionas una nueva foto, se conserva la actual.
+            </small>
           </div>
-
           <div class="mb-3">
             <label class="form-label">Nueva contraseña</label>
             <input type="password" class="form-control" id="editPassword" placeholder="Nueva contraseña">
@@ -186,13 +188,14 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
 
-      <div class="modal-header">
-        <h5 class="modal-title">Nueva publicación</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+      <form id="createPostForm">
 
-      <div class="modal-body">
-        <form id="createPostForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Nueva publicación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
 
           <div class="mb-3">
             <label class="form-label">Título</label>
@@ -202,7 +205,7 @@
           <div class="mb-3">
             <label class="form-label">Categoría</label>
             <select id="postCategoria" class="form-select" required>
-                <option value="">Selecciona una categoría</option>
+              <option value="">Selecciona una categoría</option>
             </select>
           </div>
 
@@ -212,36 +215,38 @@
           </div>
 
           <div class="mb-3">
-              <label class="form-label">Video de YouTube</label>
-              <input 
-                  id="postYoutube" 
-                  type="url" 
-                  class="form-control" 
-                  placeholder="https://www.youtube.com/watch?v=..."
-              >
+            <label class="form-label">Video de YouTube</label>
+            <input 
+              id="postYoutube" 
+              type="url" 
+              class="form-control" 
+              placeholder="https://www.youtube.com/watch?v=..."
+            >
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Link de imagen o GIF</label>
+            <label class="form-label">Imagen o GIF</label>
             <input 
-            type="url" 
-            class="form-control" 
-            id="postImagenUrl" 
-            placeholder="https://ejemplo.com/imagen.gif">
+              type="file" 
+              class="form-control" 
+              id="postImagen" 
+              accept="image/*"
+            >
           </div>
-          
-        </form>
-      </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             Cancelar
-        </button>
+          </button>
 
-        <button type="submit" form="createPostForm" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary">
             Publicar
-        </button>
-      </div>
+          </button>
+        </div>
+
+      </form>
 
     </div>
   </div>
@@ -251,13 +256,14 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
 
-      <div class="modal-header">
-        <h5 class="modal-title">Editar publicación</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+      <form id="editPostForm">
 
-      <div class="modal-body">
-        <form id="editPostForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar publicación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
 
           <input type="hidden" id="editPostId">
 
@@ -269,7 +275,7 @@
           <div class="mb-3">
             <label class="form-label">Categoría</label>
             <select id="editPostCategoria" class="form-select" required>
-                <option value="">Selecciona una categoría</option>
+              <option value="">Selecciona una categoría</option>
             </select>
           </div>
 
@@ -279,37 +285,52 @@
           </div>
 
           <div class="mb-3">
-              <label class="form-label">Video de YouTube</label>
-              <input 
-                  id="editPostYoutube" 
-                  type="url" 
-                  class="form-control" 
-                  placeholder="https://www.youtube.com/watch?v=..."
-              >
+            <label class="form-label">Video de YouTube</label>
+            <input 
+              id="editPostYoutube" 
+              type="url" 
+              class="form-control" 
+              placeholder="https://www.youtube.com/watch?v=..."
+            >
           </div>
 
           <div class="mb-3">
-    <label class="form-label">Link de imagen o GIF</label>
-    <input 
-        type="url" 
-        class="form-control" 
-        id="editPostImagenUrl" 
-        placeholder="https://ejemplo.com/imagen.gif"
-    >
-</div>
+            <label class="form-label">Imagen o GIF</label>
+            <input 
+              type="file" 
+              class="form-control" 
+              id="editPostImagen" 
+              accept="image/*"
+            >
+            <small class="text-muted">
+              Si no seleccionas una nueva imagen, se conserva la actual.
+            </small>
+          </div>
 
-        </form>
-      </div>
+          <div class="form-check mb-3">
+            <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="editEliminarImagen"
+            >
+            <label class="form-check-label" for="editEliminarImagen">
+                Eliminar imagen actual y dejar solo texto
+            </label>
+            </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             Cancelar
-        </button>
+          </button>
 
-        <button type="submit" form="editPostForm" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary">
             Guardar cambios
-        </button>
-      </div>
+          </button>
+        </div>
+
+      </form>
 
     </div>
   </div>
@@ -486,7 +507,7 @@
         editNombre.value = user.nombre || "";
         editApellido.value = user.apellido || "";
         editCorreo.value = user.correo || "";
-        editFotoPerfil.value = user.fotoPerfil || "";
+        editFotoPerfil.value = "";
 
         editPassword.value = "";
         editConfirm.value = "";
@@ -507,16 +528,20 @@
             }
         }
 
-        const updatedData = { //Creas un objeto con nuevos datos
-            nombre: editNombre.value.trim(), //trim para eliminar los posibles espacios al inicio y al final
-            apellido: editApellido.value.trim(),
-            correo: editCorreo.value.trim(),
-            fotoPerfil: editFotoPerfil.value.trim()
+        const updatedData = new FormData();
 
-        };
+        updatedData.append("nombre", editNombre.value.trim());
+        updatedData.append("apellido", editApellido.value.trim());
+        updatedData.append("correo", editCorreo.value.trim());
 
-        if (editPassword.value.trim() !== "") { //Si si se quiso cambiar la contraseña
-            updatedData.password = editPassword.value; //le metemos al objeto la nueva contraseña
+        const fotoPerfilFile = editFotoPerfil.files[0];
+
+        if (fotoPerfilFile) {
+            updatedData.append("fotoPerfil", fotoPerfilFile);
+        }
+
+        if (editPassword.value.trim() !== "") {
+            updatedData.append("password", editPassword.value);
         }
 
         const button = getSubmitButton(editProfileForm);
@@ -527,13 +552,12 @@
         }
 
         try {
-            const response = await fetch(`/api/users/${user.id}`, { //Llamada al servidor
-                method: "PUT", //queremos actualizar algo
+            const response = await fetch(`/api/users/${user.id}`, {
+                method: "PUT",
                 headers: {
-                    "Content-Type": "application/json", //le vamos a mandar un JSON, todavia es objeto de js pero adelante lo cambiaremos
-                    "Authorization": `Bearer ${token}` //le mandamos el token 
+                    "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify(updatedData) //lo convertimos a JSON
+                body: updatedData
             });
 
             const data = await response.json(); //esperamos la respuesta

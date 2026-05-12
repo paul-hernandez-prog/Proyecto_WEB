@@ -4,8 +4,12 @@ let user = JSON.parse(localStorage.getItem("user"));
 const API_POSTS = window.POSTS_API || "/api/posts";
 const DEFAULT_PROFILE_PHOTO = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
+const params = new URLSearchParams(window.location.search);
+const selectedPostId = params.get("postId");
+
 let selectedCategory = "Todas";
 let allPosts = [];
+
 
 let allCategories = [];
 
@@ -237,7 +241,7 @@ async function loadPosts() {
 function renderPosts() {
     const searchText = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
-    const filteredPosts = allPosts.filter(post => {
+    let filteredPosts = allPosts.filter(post => {
         const matchesCategory = selectedCategory === "Todas" || post.categoria === selectedCategory;
 
         const matchesSearch =
@@ -248,6 +252,10 @@ function renderPosts() {
 
         return matchesCategory && matchesSearch;
     });
+
+    if (selectedPostId) {
+        filteredPosts = allPosts.filter(post => post._id === selectedPostId);
+    }
 
     if (filteredPosts.length === 0) {
         postsContainer.innerHTML = `<p class="empty-message">No hay publicaciones para mostrar.</p>`;

@@ -16,10 +16,12 @@ window.createLoader = function (message = "Cargando...") {
 };
 
 window.getSubmitButton = function (form) {
-    if (!form) return null;
+    if (!form) {
+        return null;
+    }
 
-    return document.querySelector(`button[type="submit"][form="${form.id}"]`)
-        || form.querySelector("button[type='submit']");
+    return form.querySelector('button[type="submit"], input[type="submit"]')
+        || document.querySelector(`button[type="submit"][form="${form.id}"], input[type="submit"][form="${form.id}"]`);
 };
 
 window.startButtonLoading = function (button, loadingText = "Cargando...") {

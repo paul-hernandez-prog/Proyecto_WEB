@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middlewares/upload.middleware");
 
 const {
     createPost,
@@ -19,8 +20,8 @@ router.get("/me/my-posts", protect, getMyPosts);
 router.put("/:id/like", protect, toggleLikePost);
 router.get("/following/feed", protect, getFollowingPosts);
 router.get("/:id", protect, getPostById);
-router.post("/", protect, createPost);
-router.put("/:id", protect, updatePost);
+router.post("/", protect, upload.single("imagen"), createPost);
+router.put("/:id", protect, upload.single("imagen"), updatePost);
 router.delete("/:id", protect, deletePost);
 
 module.exports = router;
